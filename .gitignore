@@ -1,0 +1,10 @@
+# Ignore node_modules everywhere
+node_modules/
+
+# Ignore output folders
+dist/
+build/
+.next/
+.out/
+.env
+.env.*

@@ -1,0 +1,20 @@
+{
+  "name": "socialyze",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --recursive dev",
+    "build": "pnpm --recursive build",
+    "lint": "pnpm --recursive lint",
+    "type-check": "pnpm --recursive type-check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-react": "^7.37.5",
+    "prettier": "3.2.5",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript": "5.3.3",
+    "typescript-eslint": "^8.32.1"
+  }
+}
