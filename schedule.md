@@ -30,7 +30,7 @@
 
 ### 🔐 Authentication
 
--   Setup Auth0 tenant & app (Google login)
+-   Setup Auth0 tenant & app (Google & GitHub login)
 
 -   Integrate Auth0 React SDK in frontend
 
