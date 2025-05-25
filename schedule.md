@@ -4,178 +4,178 @@
 
 ### 🧱 Monorepo & Environment Setup
 
-- Init project with pnpm workspaces
+-   Init project with pnpm workspaces
 
-- Create:
+-   Create:
 
-  - apps/api (Express backend)
+    -   apps/api (Express backend)
 
-  - apps/web (Next.js frontend)
+    -   apps/web (Next.js frontend)
 
-  - packages/shared (types & utils)
+    -   packages/shared (types & utils)
 
-- Add .env and .env.example in each workspace
+-   Add .env and .env.example in each workspace
 
-- Configure tsconfig.json with aliases
+-   Configure tsconfig.json with aliases
 
-- Install Prettier, ESLint, TypeScript base
+-   Install Prettier, ESLint, TypeScript base
 
 ### 📦 Install Dependencies
 
-- Backend: express, cors, dotenv, jsonwebtoken, mongoose, zod
+-   Backend: express, cors, dotenv, jsonwebtoken, mongoose, zod
 
-- Frontend: next, react, tailwindcss, @auth0/auth0-react, axios
+-   Frontend: next, react, tailwindcss, @auth0/auth0-react, axios
 
-- Tailwind CSS setup in frontend
+-   Tailwind CSS setup in frontend
 
 ### 🔐 Authentication
 
-- Setup Auth0 tenant & app (Google login)
+-   Setup Auth0 tenant & app (Google login)
 
-- Integrate Auth0 React SDK in frontend
+-   Integrate Auth0 React SDK in frontend
 
-- Auth0 backend integration (callback, token exchange)
+-   Auth0 backend integration (callback, token exchange)
 
-- Issue JWT tokens in backend
+-   Issue JWT tokens in backend
 
-- Add guest login flow
+-   Add guest login flow
 
-- Add JWT middleware to protect backend routes
+-   Add JWT middleware to protect backend routes
 
 ## 📅 Day 2 – User Profiles + CI/CD + MongoDB
 
 ### 👤 User Profiles
 
-- Create User model: name, email, bio, profilePic, createdAt
+-   Create User model: name, email, bio, profilePic, createdAt
 
-- Auto-create user on first login
+-   Auto-create user on first login
 
-- API to fetch/update user profile
+-   API to fetch/update user profile
 
-- Profile page in frontend (view & edit)
+-   Profile page in frontend (view & edit)
 
-- Add profile image upload support (S3)
+-   Add profile image upload support (S3)
 
 ### 🧪 Testing & CI/CD
 
-- Add Vitest/Jest to backend
+-   Add Vitest/Jest to backend
 
-- Write tests for:
+-   Write tests for:
 
-  - JWT auth middleware
+    -   JWT auth middleware
 
-  - User creation
+    -   User creation
 
-- Add seed script with faker.js
+-   Add seed script with faker.js
 
-- Set up GitHub Actions:
+-   Set up GitHub Actions:
 
-  - Lint + test backend
+    -   Lint + test backend
 
-  - Configure .env via GitHub secrets
+    -   Configure .env via GitHub secrets
 
-  - 🗂️ MongoDB Atlas Setup
+    -   🗂️ MongoDB Atlas Setup
 
-- Create Atlas cluster & DB
+-   Create Atlas cluster & DB
 
-- Whitelist IP & get connection string
+-   Whitelist IP & get connection string
 
-- Connect API to MongoDB
+-   Connect API to MongoDB
 
 ## 📅 Day 3 – Social Features + Posts (Text Only)
 
 ### 👥 Following System
 
-- Extend User model with:
+-   Extend User model with:
 
-  - followers, following, pendingRequests
+    -   followers, following, pendingRequests
 
-- API Endpoints:
+-   API Endpoints:
 
-  - Send/accept/decline/cancel follow requests
+    -   Send/accept/decline/cancel follow requests
 
-  - Unfollow user
+    -   Unfollow user
 
-- List followers/following/pending
+-   List followers/following/pending
 
-- UI for follow/unfollow + requests
+-   UI for follow/unfollow + requests
 
-- Browse all users & profiles
+-   Browse all users & profiles
 
 ### 📝 Post System (Text-Only)
 
-- Post model: authorId, content, likes, comments
+-   Post model: authorId, content, likes, comments
 
-- API: create, like/unlike, comment on post
+-   API: create, like/unlike, comment on post
 
-- Post feed page (all followed users)
+-   Post feed page (all followed users)
 
-- Profile page with user’s posts
+-   Profile page with user’s posts
 
-- UI components: post form, like/comment buttons
+-   UI components: post form, like/comment buttons
 
 ## 📅 Day 4 – Image Uploads + Polish + Deployment Prep
 
 ### 🖼️ Post Images
 
-- Setup AWS S3 + IAM credentials
+-   Setup AWS S3 + IAM credentials
 
-- Add presigned URL endpoint in backend
+-   Add presigned URL endpoint in backend
 
-- Upload post images from frontend
+-   Upload post images from frontend
 
-- Save image URL in Post model
+-   Save image URL in Post model
 
-- Display images in feed and profile
+-   Display images in feed and profile
 
 ### 🧼 UI Polish
 
-- Build base layout (navbar, sidebar, responsive layout)
+-   Build base layout (navbar, sidebar, responsive layout)
 
-- Tailwind UI for posts, avatars, profile cards
+-   Tailwind UI for posts, avatars, profile cards
 
-- Skeleton loading states
+-   Skeleton loading states
 
 ### ✅ Extra Features
 
-- Route protection for all secure pages
+-   Route protection for all secure pages
 
-- Error handling middleware
+-   Error handling middleware
 
-- Validate user input with zod
+-   Validate user input with zod
 
 ## 📅 Day 5 – Deployment (Frontend + Backend) + Final Testing
 
 ### 🚀 Backend Deployment (EC2)
 
-- Launch EC2 instance (Ubuntu)
+-   Launch EC2 instance (Ubuntu)
 
-- Install Node.js, PM2 or Docker
+-   Install Node.js, PM2 or Docker
 
-- Clone repo & setup .env
+-   Clone repo & setup .env
 
-- Run backend with PM2
+-   Run backend with PM2
 
-- Setup NGINX as reverse proxy (optional)
+-   Setup NGINX as reverse proxy (optional)
 
-- Secure with SSL via Let's Encrypt (optional)
+-   Secure with SSL via Let's Encrypt (optional)
 
 ### 🌐 Frontend Deployment
 
-- next build && next export
+-   next build && next export
 
-- Deploy static site to AWS S3
+-   Deploy static site to AWS S3
 
-- Setup CloudFront for CDN + HTTPS
+-   Setup CloudFront for CDN + HTTPS
 
-- (Alt) Host frontend on EC2 with backend
+-   (Alt) Host frontend on EC2 with backend
 
 ### 🔁 Final CI/CD
 
-- Add deploy step to GitHub Actions (optional)
+-   Add deploy step to GitHub Actions (optional)
 
-- Push latest .env secrets to GitHub Actions
+-   Push latest .env secrets to GitHub Actions
 
-- Run full test + seed pass
+-   Run full test + seed pass
 
-- Polish styles, test mobile layout
+-   Polish styles, test mobile layout

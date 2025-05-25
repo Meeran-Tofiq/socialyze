@@ -1,21 +1,21 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["packages/shared/src/*"],
-      "@api/*": ["apps/api/src/*"],
-      "@web/*": ["apps/web/src/*"]
-    }
-  },
-  "references": [
-    { "path": "./apps/api" },
-    { "path": "./apps/web" },
-    { "path": "./packages/shared" }
-  ]
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "commonjs",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"baseUrl": ".",
+		"paths": {
+			"@shared/*": ["packages/shared/src/*"],
+			"@api/*": ["apps/api/src/*"],
+			"@web/*": ["apps/web/src/*"]
+		}
+	},
+	"references": [
+		{ "path": "./apps/api" },
+		{ "path": "./apps/web" },
+		{ "path": "./packages/shared" }
+	]
 }
