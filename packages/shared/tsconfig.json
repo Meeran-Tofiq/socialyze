@@ -1,8 +1,15 @@
 {
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"composite": true, // optional but good if using project references
-		"outDir": "dist"
-	},
-	"include": ["src"]
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["src"]
 }
