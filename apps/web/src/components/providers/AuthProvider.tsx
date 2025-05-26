@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 type AuthContextType = {
 	token: string | null;
-	user: any | null;
+	user: Record<string, unknown> | null;
 	login: () => void;
 	logout: () => void;
 };
@@ -13,7 +13,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [token, setToken] = useState<string | null>(null);
-	const [user, setUser] = useState<any | null>(null);
+	const [user, setUser] = useState<Record<string, unknown> | null>(null);
 
 	useEffect(() => {
 		const stored = getToken();
@@ -68,10 +68,6 @@ export const useAuth = () => {
 	}
 	return context;
 };
-
-function storeToken(token: string) {
-	localStorage.setItem("jwt", token);
-}
 
 function getToken(): string | null {
 	return localStorage.getItem("jwt");

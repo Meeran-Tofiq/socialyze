@@ -13,6 +13,12 @@ module.exports = {
 			jsx: true,
 		},
 	},
+	ignorePatterns: [
+		"postcss.config.js",
+		"tailwind.config.js",
+		"*.config.js",
+		"**/*.d.ts", // optional: ignore TypeScript declaration files
+	],
 	extends: [
 		"eslint:recommended",
 		"plugin:@typescript-eslint/recommended",
