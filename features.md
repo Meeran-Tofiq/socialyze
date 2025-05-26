@@ -2,64 +2,64 @@
 
 # 🔐 Auth & Profiles
 
-- Users must sign in to access the site
+-   Users must sign in to access the site
 
-- Auth0 integration for login (Google OAuth)
+-   Auth0 integration for login (Google OAuth)
 
-- Guest sign-in support
+-   Guest sign-in support
 
-- JWT-based session management
+-   JWT-based session management
 
-- User profile (name, bio, profile picture)
+-   User profile (name, bio, profile picture)
 
-- Update profile photo
+-   Update profile photo
 
 # 👥 Social Features
 
-- Follow/unfollow other users
+-   Follow/unfollow other users
 
-- Handle follow requests and pending states
+-   Handle follow requests and pending states
 
-- View followers and following lists
+-   View followers and following lists
 
-- Browse all users and interact with them
+-   Browse all users and interact with them
 
-- View public profile with posts
+-   View public profile with posts
 
 # 📝 Posts & Interaction
 
-- Create text-only posts
+-   Create text-only posts
 
-- Like posts
+-   Like posts
 
-- Comment on posts
+-   Comment on posts
 
-- Display post feed with:
+-   Display post feed with:
 
-  - Author info
+    -   Author info
 
-  - Content
+    -   Content
 
-  - Likes
+    -   Likes
 
-  - Comments
+    -   Comments
 
-- View feed of followed users
+-   View feed of followed users
 
-- Add image uploads to posts (AWS S3)
+-   Add image uploads to posts (AWS S3)
 
 # 💻 Development Utilities
 
-- Seeding script using Faker for users/posts
+-   Seeding script using Faker for users/posts
 
-- Use TypeScript across the stack
+-   Use TypeScript across the stack
 
-- Tailwind UI cleanup and responsiveness
+-   Tailwind UI cleanup and responsiveness
 
 # 🚀 Deployment
 
-- Backend deployed to AWS EC2
+-   Backend deployed to AWS EC2
 
-- Frontend deployed via AWS S3/CloudFront or EC2
+-   Frontend deployed via AWS S3/CloudFront or EC2
 
-- Image uploads stored on AWS S3
+-   Image uploads stored on AWS S3

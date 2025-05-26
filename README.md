@@ -6,9 +6,9 @@
 
 The tech landscape has fundamentally shifted. Developers who embrace AI and leverage it efficiently will build the future. This project is a high-intensity, 5-day sprint to build a complete social media application that showcases:
 
-- **AI-Accelerated Development** - Using AI tools to write, debug, and optimize code at lightning speed
-- **AWS Cloud Mastery** - Leveraging the full power of cloud services for scalable deployment
-- **Modern Full-Stack Architecture** - TypeScript monorepo with best practices
+-   **AI-Accelerated Development** - Using AI tools to write, debug, and optimize code at lightning speed
+-   **AWS Cloud Mastery** - Leveraging the full power of cloud services for scalable deployment
+-   **Modern Full-Stack Architecture** - TypeScript monorepo with best practices
 
 This isn't just about building an app—it's about proving that with proper planning, AI assistance, and cloud infrastructure, developers can achieve what used to take months in just days.
 
@@ -16,11 +16,11 @@ This isn't just about building an app—it's about proving that with proper plan
 
 A fully-featured social media platform with:
 
-- **🔐 Authentication** - Auth0 integration with Google OAuth + guest access
-- **👥 Social Features** - Follow/unfollow, friend requests, user discovery
-- **📝 Rich Posts** - Text content with image uploads via AWS S3
-- **💬 Engagement** - Likes, comments, and personalized feeds
-- **📱 Modern UI** - Responsive design with Tailwind CSS
+-   **🔐 Authentication** - Auth0 integration with Google OAuth + guest access
+-   **👥 Social Features** - Follow/unfollow, friend requests, user discovery
+-   **📝 Rich Posts** - Text content with image uploads via AWS S3
+-   **💬 Engagement** - Likes, comments, and personalized feeds
+-   **📱 Modern UI** - Responsive design with Tailwind CSS
 
 _See [Feature Overview](./paste.txt) for the complete feature list_
 
@@ -36,12 +36,12 @@ _See [Feature Overview](./paste.txt) for the complete feature list_
 
 ### Tech Stack
 
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
-- **Backend**: Express.js, MongoDB, TypeScript
-- **Auth**: Auth0 (Google OAuth)
-- **Cloud**: AWS (EC2, S3, CloudFront)
-- **Database**: MongoDB Atlas
-- **Tooling**: pnpm workspaces, GitHub Actions
+-   **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+-   **Backend**: Express.js, MongoDB, TypeScript
+-   **Auth**: Auth0 (Google OAuth)
+-   **Cloud**: AWS (EC2, S3, CloudFront)
+-   **Database**: MongoDB Atlas
+-   **Tooling**: pnpm workspaces, GitHub Actions
 
 _Full tech stack details in [paste.txt](./paste.txt)_
 
@@ -67,43 +67,43 @@ _Detailed daily breakdown available in [paste.txt](./paste.txt)_
 
 ## 📊 Success Metrics
 
-- ✅ **Functionality**: All core features working end-to-end
-- ✅ **Security**: Proper JWT handling, input validation
-- ✅ **Scalability**: AWS deployment with CI/CD pipeline
-- ✅ **Code Quality**: TypeScript strict
+-   ✅ **Functionality**: All core features working end-to-end
+-   ✅ **Security**: Proper JWT handling, input validation
+-   ✅ **Scalability**: AWS deployment with CI/CD pipeline
+-   ✅ **Code Quality**: TypeScript strict
 
 ## 🧠 AI Development Philosophy
 
 This project embraces AI as a development accelerator, not a replacement for engineering thinking. This project took a lot of pre-planning, and a lot of engineering decisions that were made by me to maximize the impact of the project on my learning and growth. These are the goals of using AI in this project:
 
-- **Strategic Planning** - Human-driven architecture and feature planning
-- **Rapid Implementation** - AI-assisted code generation and boilerplate
-- **Smart Debugging** - AI-powered error analysis and solutions
-- **Quality Assurance** - AI-enhanced testing and code review
+-   **Strategic Planning** - Human-driven architecture and feature planning
+-   **Rapid Implementation** - AI-assisted code generation and boilerplate
+-   **Smart Debugging** - AI-powered error analysis and solutions
+-   **Quality Assurance** - AI-enhanced testing and code review
 
 ## 🌟 Why This Matters
 
 The developers who master AI-assisted development today will dominate tomorrow's software landscape. This project demonstrates:
 
-- How to plan complex systems with and for AI acceleration
-- Balancing speed with maintainable architecture
-- Leveraging cloud services for deployment and CI/CD
-- Building production-ready apps in near-impossible timeframes
+-   How to plan complex systems with and for AI acceleration
+-   Balancing speed with maintainable architecture
+-   Leveraging cloud services for deployment and CI/CD
+-   Building production-ready apps in near-impossible timeframes
 
 ## 📚 Documentation
 
-- 📋 [Complete Feature List](./features.md) - All planned features and requirements
-- 🗓️ [Detailed Schedule](./schedule.md) - Day-by-day breakdown for each day. There are rough estimates, I may shift them around during actual development.
-- 🧱 [Tech Stack Deep Dive](./tech-stack.md) - Full technology choices and rationale
-- ✅ [Project Checklist](./to-do.md) - Development tasks and milestones
+-   📋 [Complete Feature List](./features.md) - All planned features and requirements
+-   🗓️ [Detailed Schedule](./schedule.md) - Day-by-day breakdown for each day. There are rough estimates, I may shift them around during actual development.
+-   🧱 [Tech Stack Deep Dive](./tech-stack.md) - Full technology choices and rationale
+-   ✅ [Project Checklist](./to-do.md) - Development tasks and milestones
 
 ## 🤝 Contributing
 
 This is a solo sprint challenge, but feel free to:
 
-- ⭐ Star the repo to follow the journey
-- 🐛 Report issues or suggest improvements
-- 💡 Share your own AI-accelerated development experiences
+-   ⭐ Star the repo to follow the journey
+-   🐛 Report issues or suggest improvements
+-   💡 Share your own AI-accelerated development experiences
 
 ## 📄 License
 
