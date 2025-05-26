@@ -1,13 +1,20 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import logger from "../common/logger";
 
-const router = express.Router();
+const authRouter = express.Router();
 
-router.get("/callback", async (req, res) => {
+authRouter.get("/callback", async (req, res) => {
 	const code = req.query.code as string;
 
+	if (!code) {
+		return res.status(400).send("Missing code");
+	}
+
 	try {
-		const response = await fetch(`https://${process.env.AUTH0_DOMAIN}/oauth/token`, {
+		logger.info("Received authorization code, exchanging for tokens...");
+
+		const tokenRes = await fetch(`https://${process.env.AUTH0_DOMAIN}/oauth/token`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -15,34 +22,35 @@ router.get("/callback", async (req, res) => {
 				client_id: process.env.AUTH0_CLIENT_ID,
 				client_secret: process.env.AUTH0_CLIENT_SECRET,
 				code,
-				redirect_uri: `${process.env.BACKEND_BASE_URL}/callback`,
+				redirect_uri: "http://localhost:3000/auth/callback", // Must match frontend redirect_uri
 			}),
 		});
 
-		if (!response.ok) {
-			const errData = await response.text();
-			console.error("Auth0 token error:", errData);
+		if (!tokenRes.ok) {
+			const errorText = await tokenRes.text();
+			logger.error("Auth0 exchange failed:", errorText);
 			return res.status(500).send("Token exchange failed");
 		}
 
-		const { id_token, access_token } = await response.json();
+		const { id_token } = await tokenRes.json();
 
-		// Optional: decode id_token to get user info
+		logger.info("Successfully received user info from Auth0.");
 		const userInfo = JSON.parse(Buffer.from(id_token.split(".")[1], "base64").toString());
-		console.log("User Info: " + userInfo);
 
-		// ✅ Issue your own JWT
+		// TODO: Lookup or create user profile here using userInfo.sub
+
 		const myToken = jwt.sign(
 			{ sub: userInfo.sub, email: userInfo.email },
 			process.env.JWT_SECRET!,
+			{ expiresIn: "1h" },
 		);
 
-		// Return it to frontend or set a cookie
-		res.json({ token: myToken, access_token });
+		logger.info(`Issued JWT for user ${userInfo.email} (${userInfo.sub})`);
+		res.json({ token: myToken });
 	} catch (err) {
-		console.error("Callback error:", err);
+		logger.error({ err }, "Callback error");
 		res.status(500).send("Something went wrong");
 	}
 });
 
-export default router;
+export default authRouter;
