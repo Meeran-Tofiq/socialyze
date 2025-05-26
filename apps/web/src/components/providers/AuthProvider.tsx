@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 
 type AuthContextType = {
 	token: string | null;
@@ -12,76 +11,53 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AuthProviderInner = ({ children }: { children: React.ReactNode }) => {
-	const {
-		loginWithRedirect,
-		logout: auth0Logout,
-		user,
-		isAuthenticated,
-		getIdTokenClaims,
-	} = useAuth0();
-
-	const [token, setToken] = useState<string | null>(() => {
-		if (typeof window !== "undefined") {
-			return localStorage.getItem("auth_token");
-		}
-		return null;
-	});
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+	const [token, setToken] = useState<string | null>(null);
+	const [user, setUser] = useState<any | null>(null);
 
 	useEffect(() => {
-		const fetchToken = async () => {
-			if (isAuthenticated) {
-				const tokenClaims = await getIdTokenClaims();
-				const rawToken = tokenClaims?.__raw ?? null;
-				setToken(rawToken);
+		const stored = getToken();
+		if (stored) {
+			setToken(stored);
+			// Optional: fetch user info with token here
+		}
 
-				console.log("JWT Token received:", rawToken); // <-- Add this line
-
-				if (typeof window !== "undefined" && rawToken) {
-					localStorage.setItem("auth_token", rawToken);
-				}
-			} else {
-				setToken(null);
-				if (typeof window !== "undefined") {
-					localStorage.removeItem("auth_token");
-				}
-			}
+		// Listen for other tabs or navigation updating localStorage
+		const onStorageChange = () => {
+			const updated = getToken();
+			setToken(updated);
 		};
-		fetchToken();
-	}, [isAuthenticated, getIdTokenClaims]);
+		window.addEventListener("storage", onStorageChange);
+		return () => window.removeEventListener("storage", onStorageChange);
+	}, []);
 
-	const login = () => loginWithRedirect();
+	const login = () => {
+		window.location.href =
+			`https://${process.env.NEXT_PUBLIC_AUTH0_DOMAIN}/authorize?` +
+			new URLSearchParams({
+				response_type: "code",
+				client_id: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!,
+				redirect_uri: window.location.origin + "/auth/callback",
+				scope: "openid profile email",
+			});
+	};
 
 	const logout = () => {
 		setToken(null);
-		if (typeof window !== "undefined") {
-			localStorage.removeItem("auth_token");
-		}
-		auth0Logout({
-			logoutParams: {
+		setUser(null);
+		clearStoredToken();
+		window.location.href =
+			`https://${process.env.NEXT_PUBLIC_AUTH0_DOMAIN}/v2/logout?` +
+			new URLSearchParams({
+				client_id: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!,
 				returnTo: window.location.origin,
-			},
-		});
+			}).toString();
 	};
 
 	return (
 		<AuthContext.Provider value={{ token, user, login, logout }}>
 			{children}
 		</AuthContext.Provider>
-	);
-};
-
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-	return (
-		<Auth0Provider
-			domain={process.env.NEXT_PUBLIC_AUTH0_DOMAIN!}
-			clientId={process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!}
-			authorizationParams={{
-				redirect_uri: typeof window !== "undefined" ? window.location.origin : "",
-			}}
-		>
-			<AuthProviderInner>{children}</AuthProviderInner>
-		</Auth0Provider>
 	);
 };
 
@@ -92,3 +68,15 @@ export const useAuth = () => {
 	}
 	return context;
 };
+
+function storeToken(token: string) {
+	localStorage.setItem("jwt", token);
+}
+
+function getToken(): string | null {
+	return localStorage.getItem("jwt");
+}
+
+function clearStoredToken() {
+	localStorage.removeItem("jwt");
+}
