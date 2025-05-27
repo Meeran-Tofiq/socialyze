@@ -3,6 +3,9 @@ import { UserInfo } from "@socialyze/shared";
 import UserModel, { UserInput } from "./model";
 import logger from "../common/logger";
 import getManagementToken from "@api/common/auth0";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { s3Client } from "@api/common/aws/s3Client";
 
 export async function findOrCreateUser({ email, name, profilePic }: UserInput) {
 	try {
@@ -65,6 +68,118 @@ export async function updateUserProfile(req: Request, res: Response) {
 	} catch (err) {
 		logger.error({ err }, "Failed to update user profile");
 		res.status(500).json({ error: "Failed to update profile" });
+	}
+}
+
+export async function retrieveProfilePicUploadUrl(req: Request, res: Response) {
+	const authReq = req as Request & { user: UserInfo };
+	const { fileName, fileType } = authReq.body;
+	const userId = authReq.user?.id;
+
+	logger.info(`Request to retrieve profile pic upload URL by user: ${userId}`);
+
+	if (!fileName || !fileType || !userId) {
+		logger.warn(
+			`Missing fields in upload URL request: fileName=${fileName}, fileType=${fileType}, userId=${userId}`,
+		);
+		return res.status(400).json({ error: "Missing fields" });
+	}
+
+	try {
+		const key = `uploads/profile-${userId}-${Date.now()}.${fileName.split(".").pop()}`;
+
+		const command = new PutObjectCommand({
+			Bucket: process.env.S3_BUCKET_NAME!,
+			Key: key,
+			ContentType: fileType,
+		});
+
+		const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+		logger.info(`Generated S3 upload URL for user: ${userId}, key: ${key}`);
+		res.json({ uploadUrl, key });
+	} catch (err) {
+		logger.error({ err }, `Failed to generate upload URL for user: ${userId}`);
+		res.status(500).json({ error: "Failed to generate upload URL" });
+	}
+}
+
+export async function uploadProfilePic(req: Request, res: Response) {
+	const { key } = req.body;
+	const authReq = req as Request & { user: UserInfo };
+	const userId = authReq.user.id;
+
+	logger.info(`Request to associate profile image key with user: ${userId}, key: ${key}`);
+
+	if (!key || !userId) {
+		logger.warn(`Missing key or userId in uploadProfilePic: key=${key}, userId=${userId}`);
+		return res.status(400).json({ error: "Missing key" });
+	}
+
+	try {
+		// Fetch the full user document from MongoDB
+		const user = await UserModel.findOne({ _id: userId });
+
+		if (!user) {
+			logger.warn(`User not found in DB for ID: ${userId}`);
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		const oldProfilePic = user.profilePic;
+		logger.info("old prof pic:", oldProfilePic);
+
+		// Only delete if it's an internal S3-stored key (not an external URL)
+		if (oldProfilePic && !oldProfilePic.startsWith("http")) {
+			logger.info(`Deleting previous S3 image: ${oldProfilePic}`);
+
+			try {
+				await s3Client.send(
+					new DeleteObjectCommand({
+						Bucket: process.env.S3_BUCKET_NAME!,
+						Key: oldProfilePic,
+					}),
+				);
+				logger.info(`Successfully deleted old profile pic from S3: ${oldProfilePic}`);
+			} catch (s3Err) {
+				logger.error({ s3Err }, `Error deleting old profile image: ${oldProfilePic}`);
+			}
+		} else if (oldProfilePic) {
+			logger.info(`Old profile image is external (${oldProfilePic}) — skipping deletion`);
+		}
+
+		// Update user record with the new profilePic key
+		await UserModel.findOneAndUpdate({ _id: userId }, { profilePic: key });
+		logger.info(`Updated profilePic in DB for user: ${userId}`);
+
+		res.status(200).json({ message: "Profile image updated" });
+	} catch (err) {
+		logger.error({ err }, `Error handling profile image upload for user: ${userId}`);
+		res.status(500).json({ error: "Failed to update profile image" });
+	}
+}
+
+export async function getProfilePic(req: Request, res: Response) {
+	const { key } = req.query;
+
+	logger.info(`Request to get profile image URL for key: ${key}`);
+
+	if (typeof key !== "string") {
+		logger.warn(`Invalid or missing key in getProfilePic: ${key}`);
+		return res.status(400).json({ error: "Missing or invalid key" });
+	}
+
+	const command = new GetObjectCommand({
+		Bucket: process.env.S3_BUCKET_NAME!,
+		Key: key,
+	});
+
+	try {
+		const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1-hour expiry
+		logger.info(`Signed URL generated for key: ${key}`);
+		res.json({ url });
+	} catch (err) {
+		logger.error({ err }, `Failed to generate signed URL for key: ${key}`);
+		res.status(500).json({ error: "Failed to generate signed URL" });
 	}
 }
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import LoginButton from "./LoginButton";
+import ProfilePic from "./ProfilePic";
 
 export default function Header() {
 	return (
@@ -11,7 +12,9 @@ export default function Header() {
 			</h1>
 			<div className="ml-auto flex space-x-6">
 				<LoginButton />
-				<a href="profile">Profile</a>
+				<a href="profile">
+					<ProfilePic className="h-14 w-14 rounded-full object-cover" />
+				</a>
 			</div>
 		</header>
 	);

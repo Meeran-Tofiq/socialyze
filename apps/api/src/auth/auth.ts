@@ -2,6 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import logger from "../common/logger";
 import { findOrCreateUser } from "@api/user/controller";
+import { UserInfo } from "@shared/index";
 
 const authRouter = express.Router();
 
@@ -57,7 +58,7 @@ authRouter.get("/callback", async (req, res) => {
 				id: appUser._id.toString(),
 				email: appUser.email,
 				sub: userInfo.sub,
-			},
+			} as UserInfo,
 			process.env.JWT_SECRET!,
 		);
 

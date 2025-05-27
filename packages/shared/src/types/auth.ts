@@ -6,4 +6,5 @@ export interface AuthTokens {
 export interface UserInfo {
 	sub: string;
 	email: string;
+	id: string;
 }

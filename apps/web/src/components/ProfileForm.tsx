@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { User } from "@socialyze/shared";
 import { useAuth } from "./providers/AuthProvider";
 import ConfirmModal from "../components/ConfirmModal";
+import ProfileImageUploader from "../components/ProfileImageUploader";
+import ProfilePic from "./ProfilePic";
 
 export default function ProfileForm() {
 	const { token } = useAuth();
@@ -33,9 +35,7 @@ export default function ProfileForm() {
 			}
 		}
 
-		if (token) {
-			fetchProfile();
-		}
+		if (token) fetchProfile();
 	}, [token]);
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,15 +75,31 @@ export default function ProfileForm() {
 				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to delete");
-			// Optionally, redirect user or update UI after delete:
 			setError("");
 			setIsModalOpen(false);
 			alert("Profile deleted successfully.");
-			// For example: router.push('/') if you use Next.js router
 		} catch {
 			setError("Failed to delete profile.");
 		} finally {
 			setDeleting(false);
+		}
+	};
+
+	const handleImageUploadComplete = async (key: string) => {
+		// Save the uploaded image key to the user's profile
+		try {
+			await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/upload-pic`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				credentials: "include",
+				body: JSON.stringify({ key }),
+			});
+			setFormData((prev) => ({ ...prev, profilePic: key }));
+		} catch {
+			console.error("Failed to save image key");
 		}
 	};
 
@@ -104,16 +120,12 @@ export default function ProfileForm() {
 					/>
 				</div>
 
-				<div>
-					<label className="mb-1 block font-medium">Profile Picture URL</label>
-					<input
-						name="profilePic"
-						value={formData.profilePic || ""}
-						onChange={handleChange}
-						className="w-full rounded border p-2 text-black"
-						disabled={saving || deleting}
-					/>
-				</div>
+				{formData.profilePic && <ProfilePic width={128} height={128} />}
+
+				<ProfileImageUploader
+					uploadUrlEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/user/upload-url`}
+					onUploadCompleteAction={handleImageUploadComplete}
+				/>
 
 				<div className="flex items-center justify-between">
 					<button
