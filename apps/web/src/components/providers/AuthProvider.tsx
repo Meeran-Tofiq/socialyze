@@ -1,10 +1,11 @@
 "use client";
 
+import { User } from "@shared/index";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 type AuthContextType = {
 	token: string | null;
-	user: Record<string, unknown> | null;
+	user: Partial<User> | null;
 	login: () => void;
 	logout: () => void;
 };
@@ -13,16 +14,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [token, setToken] = useState<string | null>(null);
-	const [user, setUser] = useState<Record<string, unknown> | null>(null);
+	const [user, setUser] = useState<Partial<User> | null>(null);
 
 	useEffect(() => {
-		const stored = getToken();
-		if (stored) {
+		const fetchAndSetUser = async () => {
+			const stored = getToken();
+			if (!stored) return;
 			setToken(stored);
-			// Optional: fetch user info with token here
-		}
 
-		// Listen for other tabs or navigation updating localStorage
+			try {
+				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+					headers: {
+						Authorization: `Bearer ${stored}`,
+					},
+				});
+
+				if (!res.ok) throw new Error("Failed to fetch user");
+
+				const data = await res.json();
+				setUser(data as Partial<User>);
+			} catch (err) {
+				console.error("Failed to load user", err);
+				setUser(null);
+			}
+		};
+
+		fetchAndSetUser();
+
 		const onStorageChange = () => {
 			const updated = getToken();
 			setToken(updated);
@@ -30,7 +48,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		window.addEventListener("storage", onStorageChange);
 		return () => window.removeEventListener("storage", onStorageChange);
 	}, []);
-
 	const login = () => {
 		window.location.href =
 			`https://${process.env.NEXT_PUBLIC_AUTH0_DOMAIN}/authorize?` +

@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 interface JwtPayload {
 	sub: string;
 	email?: string;
+	id: string;
 	// Add more fields as needed
 }
 

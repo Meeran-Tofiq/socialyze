@@ -1,6 +1,8 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import logger from "../common/logger";
+import { findOrCreateUser } from "@api/user/controller";
+import { UserInfo } from "@shared/index";
 
 const authRouter = express.Router();
 
@@ -37,12 +39,27 @@ authRouter.get("/callback", async (req, res) => {
 		logger.info("Successfully received user info from Auth0.");
 		const userInfo = JSON.parse(Buffer.from(id_token.split(".")[1], "base64").toString());
 
-		// TODO: Lookup or create user profile here using userInfo.sub
+		// Trust only verified emails (optional but recommended)
+		if (!userInfo.email || !userInfo.email_verified) {
+			logger.error("Unverified or missing email");
+			return res.status(400).send("Email not verified");
+		}
 
+		// Use controller to create or fetch user
+		const appUser = await findOrCreateUser({
+			email: userInfo.email,
+			name: userInfo.name,
+			profilePic: userInfo.picture,
+		});
+
+		// Issue JWT with your own claims
 		const myToken = jwt.sign(
-			{ sub: userInfo.sub, email: userInfo.email },
+			{
+				id: appUser._id.toString(),
+				email: appUser.email,
+				sub: userInfo.sub,
+			} as UserInfo,
 			process.env.JWT_SECRET!,
-			{ expiresIn: "1h" },
 		);
 
 		logger.info(`Issued JWT for user ${userInfo.email} (${userInfo.sub})`);
