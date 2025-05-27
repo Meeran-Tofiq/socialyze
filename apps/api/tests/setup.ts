@@ -1,20 +1,24 @@
+import { beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
 let mongoServer: MongoMemoryServer;
-let client: MongoClient;
 
-export async function setupDB() {
+beforeAll(async () => {
 	mongoServer = await MongoMemoryServer.create();
 	const uri = mongoServer.getUri();
+	await mongoose.connect(uri);
+});
 
-	client = new MongoClient(uri);
-	await client.connect();
+afterAll(async () => {
+	await mongoose.disconnect();
+	await mongoServer.stop();
+});
 
-	return client.db();
-}
-
-export async function teardownDB() {
-	if (client) await client.close();
-	if (mongoServer) await mongoServer.stop();
-}
+beforeEach(async () => {
+	// Clean db before each test
+	const collections = mongoose.connection.collections;
+	for (const key in collections) {
+		await collections[key].deleteMany({});
+	}
+});

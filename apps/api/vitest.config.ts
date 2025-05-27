@@ -9,5 +9,6 @@ export default defineConfig({
 		globals: true,
 		environment: "node",
 		include: ["tests/**/*.test.ts"], // only run tests in the tests folder
+		setupFiles: ["./tests/setup.ts"],
 	},
 });
