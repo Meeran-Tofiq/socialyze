@@ -54,13 +54,15 @@ authRouter.get("/callback", async (req, res) => {
 		// Issue JWT with your own claims
 		const myToken = jwt.sign(
 			{
-				sub: appUser._id.toString(),
+				id: appUser._id.toString(),
 				email: appUser.email,
+				sub: userInfo.sub,
 			},
 			process.env.JWT_SECRET!,
 		);
 
 		logger.info(`Issued JWT for user ${userInfo.email} (${userInfo.sub})`);
+		logger.info(jwt.decode(myToken));
 		res.json({ token: myToken });
 	} catch (err) {
 		logger.error({ err }, "Callback error");
