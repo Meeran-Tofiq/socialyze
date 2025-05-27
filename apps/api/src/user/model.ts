@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 import type { User as SharedUser } from "@socialyze/shared";
 
-type UserInput = Omit<SharedUser, "_id" | "createdAt" | "updatedAt">;
+export type UserInput = Omit<SharedUser, "_id" | "createdAt" | "updatedAt">;
 
 interface UserDoc extends Document, UserInput {
 	_id: Types.ObjectId;
