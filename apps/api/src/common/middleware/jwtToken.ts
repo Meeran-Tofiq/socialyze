@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import logger from "../logger";
 
 // Define expected shape of your token payload (optional)
 interface JwtPayload {
@@ -25,10 +24,8 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
 	const token = authHeader.split(" ")[1];
 
 	try {
-		logger.info(token);
 		const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 		req.user = decoded;
-		logger.info(decoded);
 		next();
 	} catch {
 		return res.status(401).json({ message: "Invalid token" });

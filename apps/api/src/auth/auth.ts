@@ -62,7 +62,6 @@ authRouter.get("/callback", async (req, res) => {
 		);
 
 		logger.info(`Issued JWT for user ${userInfo.email} (${userInfo.sub})`);
-		logger.info(jwt.decode(myToken));
 		res.json({ token: myToken });
 	} catch (err) {
 		logger.error({ err }, "Callback error");
