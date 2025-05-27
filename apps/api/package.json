@@ -5,7 +5,9 @@
 		"dev": "node --import tsx --watch src/index.ts",
 		"build": "tsc",
 		"start": "node dist/index.js",
-		"test": "vitest"
+		"test": "vitest",
+		"lint": "eslint 'src/**' 'tests/**' --max-warnings=0",
+		"test": "vitest run --config vitest.config.ts"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.817.0",
