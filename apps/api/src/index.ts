@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import apiRouter from "./apiRouter";
+import { connectDB } from "./common/db";
 
 dotenv.config();
 
@@ -23,6 +24,18 @@ app.get("/", (_, res) => {
 // Mount routes
 app.use("/", apiRouter);
 
-app.listen(PORT, () => {
-	console.log(`Server running on http://localhost:${PORT}`);
-});
+async function startServer() {
+	try {
+		await connectDB();
+		console.log("✅ Connected to MongoDB");
+
+		app.listen(PORT, () => {
+			console.log(`🚀 Server running on http://localhost:${PORT}`);
+		});
+	} catch (err) {
+		console.error("❌ Failed to connect to MongoDB", err);
+		process.exit(1); // Exit if DB connection fails
+	}
+}
+
+startServer();
