@@ -6,4 +6,5 @@ export interface User {
 	profilePic?: string; // URL to S3
 	createdAt: string;
 	updatedAt: string;
+	username: string;
 }

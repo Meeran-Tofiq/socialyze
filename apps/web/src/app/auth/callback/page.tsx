@@ -1,16 +1,28 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import UsernameForm from "@web/components/UsernameForm";
+
+export type NeedsUsernameResponse = {
+	needsUsername: boolean;
+	email: string;
+	name?: string;
+	profilePic?: string;
+	sub: string;
+};
 
 export default function AuthCallbackPage() {
 	const router = useRouter();
 	const params = useSearchParams();
 	const code = params.get("code");
 
+	const [needsUsernameData, setNeedsUsernameData] = useState<NeedsUsernameResponse | null>(null);
+	const [loading, setLoading] = useState(true);
+
 	useEffect(() => {
 		if (!code) {
-			router.replace("/"); // no code, go home
+			router.replace("/");
 			return;
 		}
 
@@ -24,21 +36,43 @@ export default function AuthCallbackPage() {
 					},
 				);
 
+				if (res.status === 404) {
+					// User needs to enter username
+					const data = (await res.json()) as NeedsUsernameResponse;
+					setNeedsUsernameData(data);
+					setLoading(false);
+					return;
+				}
+
 				if (!res.ok) throw new Error("Token exchange failed");
+
 				const data = await res.json();
-
+				// Use AuthProvider to set token & user
 				localStorage.setItem("jwt", data.token);
-				// You might want to store user in a global store/context here if you use one
-
-				router.replace("/"); // clean URL and go to home
+				// Optionally fetch user data here or you can just reload
+				router.replace("/");
 			} catch (error) {
 				console.error("Failed to exchange code:", error);
-				router.replace("/"); // or show error UI
+				router.replace("/");
 			}
 		}
 
 		exchangeCode();
 	}, [code, router]);
 
-	return <p>Logging you in...</p>;
+	if (loading && !needsUsernameData) return <p>Logging you in...</p>;
+
+	if (needsUsernameData)
+		return (
+			<UsernameForm
+				userInfo={needsUsernameData}
+				onSuccess={(token) => {
+					localStorage.setItem("jwt", token);
+					// You could also update AuthProvider state here if you want a method to set token directly
+					router.replace("/");
+				}}
+			/>
+		);
+
+	return null; // shouldn't happen
 }

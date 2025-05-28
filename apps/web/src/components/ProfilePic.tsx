@@ -35,6 +35,7 @@ export default function ProfilePic({ width = 40, height = 40, className = "" }: 
 				);
 				if (!res.ok) throw new Error("Failed to get signed URL");
 				const data = await res.json();
+				console.log(data.url);
 				setPicUrl(data.url);
 			} catch (err) {
 				console.error("Failed to load profile image", err);

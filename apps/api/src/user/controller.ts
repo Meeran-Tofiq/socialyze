@@ -6,6 +6,7 @@ import getManagementToken from "@api/common/auth0";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "@api/common/aws/s3Client";
+import jwt from "jsonwebtoken";
 
 export async function findOrCreateUser({ email, name, profilePic }: UserInput) {
 	try {
@@ -23,6 +24,49 @@ export async function findOrCreateUser({ email, name, profilePic }: UserInput) {
 	} catch (err) {
 		logger.error({ err }, `Error in findOrCreateUser for email: ${email}`);
 		throw err;
+	}
+}
+
+export async function findUserByEmail(email: string) {
+	return await UserModel.findOne({ email });
+}
+
+export async function createUser(req: Request, res: Response) {
+	const { email, name, profilePic, username, sub } = req.body;
+
+	if (!email || !username || !sub) {
+		return res.status(400).send("Missing required fields");
+	}
+
+	try {
+		const newUser = await UserModel.create({
+			email,
+			name,
+			profilePic,
+			username,
+		});
+
+		const myToken = jwt.sign(
+			{
+				id: newUser._id.toString(),
+				email: newUser.email,
+				sub,
+			},
+			process.env.JWT_SECRET!,
+		);
+
+		logger.info(`Created new user and issued JWT: ${newUser.email}`);
+		res.json({ token: myToken });
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			logger.error({ err }, "Error creating user");
+			if (err.message === "Username already taken") {
+				return res.status(409).send("Username already taken");
+			}
+		} else {
+			logger.error("Unknown error", err);
+		}
+		res.status(500).send("Failed to create user");
 	}
 }
 
