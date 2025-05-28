@@ -175,7 +175,7 @@ export async function uploadProfilePic(req: Request, res: Response) {
 			logger.info(`Deleting previous S3 image: ${oldProfilePic}`);
 
 			try {
-				await profileImageService.deleteOldProfilePic(key);
+				await profileImageService.deleteOldProfilePic(oldProfilePic);
 				logger.info(`Successfully deleted old profile pic from S3: ${oldProfilePic}`);
 			} catch (s3Err) {
 				logger.error({ s3Err }, `Error deleting old profile image: ${oldProfilePic}`);
