@@ -105,6 +105,10 @@ This is a solo sprint challenge, but feel free to:
 -   🐛 Report issues or suggest improvements
 -   💡 Share your own AI-accelerated development experiences
 
+## Credits
+
+-   [default profile picture](https://www.flaticon.com/free-icon/profile_7093729)
+
 ## 📄 License
 
 MIT License - Build amazing things! 🚢
