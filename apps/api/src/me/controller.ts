@@ -3,10 +3,8 @@ import { UserInfo } from "@socialyze/shared";
 import UserModel, { UserInput } from "./model";
 import logger from "../common/logger";
 import getManagementToken from "@api/common/auth0";
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { s3Client } from "@api/common/aws/s3Client";
 import jwt from "jsonwebtoken";
+import * as profileImageService from "@api/common/aws/profileImageService";
 
 export async function findOrCreateUser({ email, name, profilePic }: UserInput) {
 	try {
@@ -83,6 +81,10 @@ export async function getUserProfile(req: Request, res: Response) {
 			return res.status(404).json({ message: "User not found" });
 		}
 
+		if (user.profilePic && !user.profilePic.startsWith("http")) {
+			user.profilePic = await profileImageService.generateDownloadUrl(user.profilePic);
+		}
+
 		logger.info(`Profile fetched for user: ${user._id}`);
 		res.json(user);
 	} catch (err) {
@@ -130,15 +132,11 @@ export async function retrieveProfilePicUploadUrl(req: Request, res: Response) {
 	}
 
 	try {
-		const key = `uploads/profile-${userId}-${Date.now()}.${fileName.split(".").pop()}`;
-
-		const command = new PutObjectCommand({
-			Bucket: process.env.S3_BUCKET_NAME!,
-			Key: key,
-			ContentType: fileType,
-		});
-
-		const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+		const { uploadUrl, key } = await profileImageService.generateUploadUrl(
+			authReq.user.id,
+			fileName,
+			fileType,
+		);
 
 		logger.info(`Generated S3 upload URL for user: ${userId}, key: ${key}`);
 		res.json({ uploadUrl, key });
@@ -177,12 +175,7 @@ export async function uploadProfilePic(req: Request, res: Response) {
 			logger.info(`Deleting previous S3 image: ${oldProfilePic}`);
 
 			try {
-				await s3Client.send(
-					new DeleteObjectCommand({
-						Bucket: process.env.S3_BUCKET_NAME!,
-						Key: oldProfilePic,
-					}),
-				);
+				await profileImageService.deleteOldProfilePic(key);
 				logger.info(`Successfully deleted old profile pic from S3: ${oldProfilePic}`);
 			} catch (s3Err) {
 				logger.error({ s3Err }, `Error deleting old profile image: ${oldProfilePic}`);
@@ -212,13 +205,8 @@ export async function getProfilePic(req: Request, res: Response) {
 		return res.status(400).json({ error: "Missing or invalid key" });
 	}
 
-	const command = new GetObjectCommand({
-		Bucket: process.env.S3_BUCKET_NAME!,
-		Key: key,
-	});
-
 	try {
-		const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1-hour expiry
+		const url = await profileImageService.generateDownloadUrl(key);
 		logger.info(`Signed URL generated for key: ${key}`);
 		res.json({ url });
 	} catch (err) {

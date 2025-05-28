@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { User } from "@socialyze/shared";
-import { useAuth } from "./providers/AuthProvider";
+import { useAuth } from "@web/providers/AuthProvider";
 import ConfirmModal from "../components/ConfirmModal";
 import ProfileImageUploader from "../components/ProfileImageUploader";
 import ProfilePic from "./ProfilePic";
 
 export default function ProfileForm() {
-	const { token, logout } = useAuth();
+	const { token, logout, refetchUser } = useAuth();
 	const [formData, setFormData] = useState<Partial<User>>({});
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -98,6 +98,7 @@ export default function ProfileForm() {
 				body: JSON.stringify({ key }),
 			});
 			setFormData((prev) => ({ ...prev, profilePic: key }));
+			refetchUser();
 		} catch {
 			console.error("Failed to save image key");
 		}

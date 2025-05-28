@@ -1,13 +1,11 @@
 "use client";
 
-import { useAuth } from "./providers/AuthProvider";
+import { useAuth } from "@web/providers/AuthProvider";
 
 export default function LoginButton() {
-	const { token, login, logout } = useAuth();
+	const { user, login, logout } = useAuth();
 
-	// Consider user authenticated if token exists
-	const isAuthenticated = !!token;
-
+	const isAuthenticated = !!user;
 	return isAuthenticated ? (
 		<button onClick={logout}>Log Out</button>
 	) : (

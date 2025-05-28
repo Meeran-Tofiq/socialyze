@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useAuth } from "./providers/AuthProvider";
+import { useAuth } from "@web/providers/AuthProvider";
 
 interface Props {
 	uploadUrlEndpoint: string;
