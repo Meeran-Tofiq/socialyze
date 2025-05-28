@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "@shared/index";
+import { User } from "@socialyze/shared";
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 type AuthContextType = {
