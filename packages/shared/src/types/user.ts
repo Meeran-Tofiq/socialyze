@@ -12,3 +12,10 @@ export interface User {
 	pendingFollowRequests: string[];
 	sentFollowRequests: string[];
 }
+
+export interface UserPublic
+	extends Pick<User, "_id" | "username" | "profilePic" | "bio" | "createdAt"> {
+	isFollowing: boolean;
+	hasRequestedFollow: boolean;
+	isFollowedByCurrentUser: boolean;
+}
