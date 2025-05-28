@@ -1,7 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import logger from "../common/logger";
-import { findUserByEmail } from "@api/me/controller";
+import logger from "@api/common/logger";
+import { findUserByEmail } from "@api/endpoints/me/controller";
 
 const authRouter = express.Router();
 

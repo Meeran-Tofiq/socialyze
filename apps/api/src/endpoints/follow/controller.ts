@@ -1,4 +1,4 @@
-import UserModel from "@api/me/model";
+import UserModel from "@api/endpoints/me/model";
 import { UserInfo } from "@socialyze/shared";
 import { Request, Response } from "express";
 

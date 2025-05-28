@@ -1,8 +1,8 @@
 import express from "express";
-import authRouter from "./auth/auth";
-import meRouter from "./me/routes";
-import usersRouter from "./users/routes";
-import followsRouter from "./follow/routes";
+import authRouter from "./endpoints/auth/auth";
+import meRouter from "./endpoints/me/routes";
+import usersRouter from "./endpoints/users/routes";
+import followsRouter from "./endpoints/follow/routes";
 
 const apiRouter = express.Router();
 

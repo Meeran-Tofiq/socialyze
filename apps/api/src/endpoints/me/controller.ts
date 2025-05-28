@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { UserInfo } from "@socialyze/shared";
 import UserModel, { UserInput } from "./model";
-import logger from "../common/logger";
+import logger from "@api/common/logger";
 import getManagementToken from "@api/common/auth0";
 import jwt from "jsonwebtoken";
 import * as profileImageService from "@api/common/aws/profileImageService";

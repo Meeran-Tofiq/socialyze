@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { UserInfo, UserPublic } from "@socialyze/shared";
-import UserModel from "@api/me/model";
+import UserModel from "@api/endpoints/me/model";
 import logger from "@api/common/logger";
 import { generateDownloadUrl } from "@api/common/aws/profileImageService";
 
