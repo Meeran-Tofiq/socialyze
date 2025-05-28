@@ -26,7 +26,7 @@ export default function ProfilePic({ width = 40, height = 40, className = "" }: 
 		async function fetchSignedUrl() {
 			try {
 				const res = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/user/profile-pic?key=${encodeURIComponent(imageKey as string)}`,
+					`${process.env.NEXT_PUBLIC_API_URL}/me/profile-pic?key=${encodeURIComponent(imageKey as string)}`,
 					{
 						headers: {
 							Authorization: `Bearer ${token}`,

@@ -19,7 +19,7 @@ export default function ProfileForm() {
 	useEffect(() => {
 		async function fetchProfile() {
 			try {
-				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
 					credentials: "include",
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -46,7 +46,7 @@ export default function ProfileForm() {
 		e.preventDefault();
 		setSaving(true);
 		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
 				method: "PATCH",
 				headers: {
 					"Content-Type": "application/json",
@@ -67,7 +67,7 @@ export default function ProfileForm() {
 	const handleDeleteConfirm = async () => {
 		setDeleting(true);
 		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
 				method: "DELETE",
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -88,7 +88,7 @@ export default function ProfileForm() {
 
 	const handleImageUploadComplete = async (key: string) => {
 		try {
-			await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/upload-pic`, {
+			await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/upload-pic`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -124,7 +124,7 @@ export default function ProfileForm() {
 				{formData.profilePic && <ProfilePic width={128} height={128} />}
 
 				<ProfileImageUploader
-					uploadUrlEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/user/upload-url`}
+					uploadUrlEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/me/upload-url`}
 					onUploadCompleteAction={handleImageUploadComplete}
 				/>
 

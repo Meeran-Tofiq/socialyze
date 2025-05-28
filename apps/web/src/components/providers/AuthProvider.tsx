@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			setToken(stored);
 
 			try {
-				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
 					headers: {
 						Authorization: `Bearer ${stored}`,
 					},
