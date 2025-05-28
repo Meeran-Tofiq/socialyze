@@ -7,4 +7,8 @@ export interface User {
 	createdAt: string;
 	updatedAt: string;
 	username: string;
+	followers: string[];
+	following: string[];
+	pendingFollowRequests: string[];
+	sentFollowRequests: string[];
 }

@@ -16,6 +16,10 @@ const UserSchema = new Schema<UserDoc>(
 		bio: { type: String },
 		profilePic: { type: String },
 		username: { type: String, required: true, unique: true },
+		followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+		following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+		pendingFollowRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+		sentFollowRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 	},
 	{
 		timestamps: true,
