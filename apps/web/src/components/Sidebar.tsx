@@ -43,7 +43,7 @@ export default function Sidebar() {
 	);
 
 	return user ? (
-		<aside className="h-full w-64 overflow-y-auto bg-gray-800 p-4 text-white">
+		<aside className="scrollbar scrollbar-thumb-gray-700 scrollbar-track-gray-900 h-full w-64 overflow-y-auto bg-gray-800 p-4 text-white">
 			<Section title="Following" users={data.following} />
 			<Section title="Followers" users={data.followers} />
 			<Section title="Pending Requests" users={data.pending} />

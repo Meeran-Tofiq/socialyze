@@ -19,13 +19,13 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`h-full min-h-screen ${inter.className}`}>
+			<body className={`h-screen ${inter.className}`}>
 				<AuthProvider>
-					<div className="flex h-full min-h-screen flex-col">
+					<div className="flex h-screen flex-col">
 						<Header />
-						<div className="flex h-full flex-1">
+						<div className="flex flex-1 overflow-hidden">
 							<Sidebar />
-							<main className="flex-1">{children}</main>
+							<main className="flex-1 overflow-y-auto">{children}</main>
 						</div>
 					</div>
 				</AuthProvider>
