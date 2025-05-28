@@ -1,24 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import { useAuth } from "@web/providers/AuthProvider";
 
 interface ProfilePicProps {
+	src?: string | null; // optional src string, null or undefined means no image
+	alt?: string;
 	width?: number;
 	height?: number;
 	className?: string;
 }
 
-export default function ProfilePic({ width = 40, height = 40, className = "" }: ProfilePicProps) {
-	const { user } = useAuth();
-
-	if (!user?.profilePic) return null;
+export default function ProfilePic({
+	src,
+	alt = "Profile picture",
+	width = 40,
+	height = 40,
+	className = "",
+}: ProfilePicProps) {
+	if (!src) return null;
 
 	return (
 		<div className={`relative overflow-hidden rounded-full`} style={{ width, height }}>
 			<Image
-				src={user?.profilePic}
-				alt="Profile picture"
+				src={src}
+				alt={alt}
 				fill
 				className={`object-cover ${className}`}
 				sizes={`${width}px`}

@@ -8,7 +8,7 @@ import ProfileImageUploader from "../components/ProfileImageUploader";
 import ProfilePic from "./ProfilePic";
 
 export default function ProfileForm() {
-	const { token, logout, refetchUser } = useAuth();
+	const { token, logout, refetchUser, user } = useAuth();
 	const [formData, setFormData] = useState<Partial<User>>({});
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -122,7 +122,9 @@ export default function ProfileForm() {
 					/>
 				</div>
 
-				{formData.profilePic && <ProfilePic width={128} height={128} />}
+				{formData.profilePic && (
+					<ProfilePic src={user?.profilePic} width={128} height={128} />
+				)}
 
 				<ProfileImageUploader
 					uploadUrlEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/me/upload-url`}
