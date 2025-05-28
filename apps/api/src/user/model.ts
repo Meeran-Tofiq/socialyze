@@ -15,6 +15,7 @@ const UserSchema = new Schema<UserDoc>(
 		email: { type: String, required: true, unique: true },
 		bio: { type: String },
 		profilePic: { type: String },
+		username: { type: String, required: true, unique: true },
 	},
 	{
 		timestamps: true,

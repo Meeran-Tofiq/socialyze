@@ -1,5 +1,6 @@
 import express from "express";
 import {
+	createUser,
 	deleteUserProfile,
 	getProfilePic,
 	getUserProfile,
@@ -11,6 +12,7 @@ import { requireAuth } from "@api/common/middleware/jwtToken";
 
 const userRouter = express.Router();
 
+userRouter.post("/", createUser);
 userRouter.use(requireAuth);
 
 userRouter.get("/", getUserProfile);

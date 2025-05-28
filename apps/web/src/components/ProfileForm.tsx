@@ -8,7 +8,7 @@ import ProfileImageUploader from "../components/ProfileImageUploader";
 import ProfilePic from "./ProfilePic";
 
 export default function ProfileForm() {
-	const { token } = useAuth();
+	const { token, logout } = useAuth();
 	const [formData, setFormData] = useState<Partial<User>>({});
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -53,7 +53,7 @@ export default function ProfileForm() {
 					Authorization: `Bearer ${token}`,
 				},
 				credentials: "include",
-				body: JSON.stringify(formData),
+				body: JSON.stringify({ username: formData.username }), // only send username update
 			});
 			if (!res.ok) throw new Error("Failed to save");
 			setError("");
@@ -78,6 +78,7 @@ export default function ProfileForm() {
 			setError("");
 			setIsModalOpen(false);
 			alert("Profile deleted successfully.");
+			logout();
 		} catch {
 			setError("Failed to delete profile.");
 		} finally {
@@ -86,7 +87,6 @@ export default function ProfileForm() {
 	};
 
 	const handleImageUploadComplete = async (key: string) => {
-		// Save the uploaded image key to the user's profile
 		try {
 			await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/upload-pic`, {
 				method: "POST",
@@ -110,13 +110,14 @@ export default function ProfileForm() {
 		<>
 			<form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4">
 				<div>
-					<label className="mb-1 block font-medium">Name</label>
+					<label className="mb-1 block font-medium text-white">Username</label>
 					<input
-						name="name"
-						value={formData.name || ""}
+						name="username"
+						value={formData.username || ""}
 						onChange={handleChange}
 						className="w-full rounded border p-2 text-black"
 						disabled={saving || deleting}
+						required
 					/>
 				</div>
 

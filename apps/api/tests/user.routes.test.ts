@@ -79,6 +79,7 @@ describe("User routes", () => {
 		const user = await UserModel.create({
 			email: "user1@example.com",
 			name: "Test User",
+			username: "meran",
 		});
 
 		// Mock requireAuth to inject this user
@@ -101,6 +102,7 @@ describe("User routes", () => {
 		const user = await UserModel.create({
 			email: "user2@example.com",
 			name: "Old Name",
+			username: "meran",
 		});
 
 		// Mock requireAuth to inject this user
@@ -123,6 +125,7 @@ describe("User routes", () => {
 		const user = await UserModel.create({
 			email: "user3@example.com",
 			name: "Delete Me",
+			username: "meran",
 		});
 
 		// Mock requireAuth to inject this user
@@ -164,6 +167,7 @@ describe("User routes", () => {
 		const user = await UserModel.create({
 			email: "user5@example.com",
 			name: "Uploader",
+			username: "meran",
 		});
 
 		// Mock requireAuth to inject this user
