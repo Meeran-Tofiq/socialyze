@@ -1,6 +1,6 @@
 "use client";
 
-import { PostWithAuthor } from "@socialyze/shared";
+import { PostWithAuthorAndComment } from "@socialyze/shared";
 import NewPostForm from "@web/components/NewPostForm";
 import PostCard from "@web/components/PostCard";
 import { useAuth } from "@web/providers/AuthProvider";
@@ -8,15 +8,20 @@ import { useCallback, useEffect, useState } from "react";
 
 export default function FeedPage() {
 	const { token } = useAuth();
-	const [posts, setPosts] = useState<PostWithAuthor[]>([]);
+	const [posts, setPosts] = useState<PostWithAuthorAndComment[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [showFollowingOnly, setShowFollowingOnly] = useState(false);
+
+	const feedUri = showFollowingOnly
+		? `${process.env.NEXT_PUBLIC_API_URL}/posts/feed/following`
+		: `${process.env.NEXT_PUBLIC_API_URL}/posts/feed`;
 
 	const fetchFeed = useCallback(async () => {
 		if (!token) return;
 
 		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/feed`, {
+			const res = await fetch(feedUri, {
 				headers: { Authorization: `Bearer ${token}` },
 			});
 			if (!res.ok) throw new Error(`Failed to fetch feed: ${res.statusText}`);
@@ -31,38 +36,56 @@ export default function FeedPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [token]); // include `token` here
+	}, [token, feedUri]);
 
 	useEffect(() => {
-		if (token) fetchFeed();
-		else {
+		if (token) {
+			setLoading(true);
+			fetchFeed();
+		} else {
 			setPosts([]);
 			setLoading(true);
 			setError(null);
 		}
 	}, [token, fetchFeed]);
 
-	if (loading) {
-		return <div className="mt-10 text-center text-gray-400">Loading feed...</div>;
-	}
-
-	if (error) {
-		return <div className="mt-10 text-center text-red-500">Error: {error}</div>;
-	}
-
-	if (posts.length === 0) {
-		return <div className="mt-10 text-center text-gray-400">No posts available.</div>;
-	}
-
 	return (
-		<main className="min-h-screen bg-gray-950 py-8 text-gray-200">
-			<h1 className="mb-6 text-center text-3xl font-bold">Global Feed</h1>
-			<NewPostForm onPostCreated={fetchFeed} />
-			<div className="space-y-4">
-				{posts.map((post) => (
-					<PostCard key={post._id} post={post} />
-				))}
+		<>
+			<div className="mb-4 flex justify-center gap-4">
+				<button
+					onClick={() => setShowFollowingOnly(false)}
+					className={`rounded px-4 py-2 ${
+						!showFollowingOnly ? "bg-blue-600 text-white" : "bg-gray-300 text-black"
+					}`}
+				>
+					Global Feed
+				</button>
+				<button
+					onClick={() => setShowFollowingOnly(true)}
+					className={`rounded px-4 py-2 ${
+						showFollowingOnly ? "bg-blue-600 text-white" : "bg-gray-300 text-black"
+					}`}
+				>
+					Following
+				</button>
 			</div>
-		</main>
+
+			{loading ? (
+				<div className="mt-10 text-center text-gray-400">Loading feed...</div>
+			) : error ? (
+				<div className="mt-10 text-center text-red-500">Error: {error}</div>
+			) : posts.length === 0 ? (
+				<div className="mt-10 text-center text-gray-400">No posts available.</div>
+			) : (
+				<>
+					<NewPostForm onPostCreated={fetchFeed} />
+					<div className="space-y-4">
+						{posts.map((post) => (
+							<PostCard key={post._id} post={post} />
+						))}
+					</div>
+				</>
+			)}
+		</>
 	);
 }
