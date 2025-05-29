@@ -1,13 +1,14 @@
 "use client";
 
+import React from "react";
 import { useState } from "react";
 
 type Props = {
-	onImageSelected: (file: File, key: string, previewUrl: string, uploadUrl: string) => void;
+	onImageSelectedAction: (file: File, key: string, previewUrl: string, uploadUrl: string) => void;
 	uploadUrlEndpoint: string;
 };
 
-export default function ProfileImageUploader({ onImageSelected, uploadUrlEndpoint }: Props) {
+export default function ProfileImageUploader({ onImageSelectedAction, uploadUrlEndpoint }: Props) {
 	const [error, setError] = useState("");
 
 	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,7 +37,7 @@ export default function ProfileImageUploader({ onImageSelected, uploadUrlEndpoin
 			const previewUrl = URL.createObjectURL(file);
 
 			// Pass everything to parent to handle actual upload later
-			onImageSelected(file, key, previewUrl, uploadUrl);
+			onImageSelectedAction(file, key, previewUrl, uploadUrl);
 			setError("");
 		} catch (err) {
 			console.error(err);
