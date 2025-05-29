@@ -56,7 +56,7 @@ export default function PostCard({ post }: PostCardProps) {
 
 	return (
 		<div className="mx-auto mb-4 max-w-xl rounded bg-gray-800 p-4 shadow-lg shadow-black/50">
-			<div className="mb-2 flex items-center">
+			<div className="mb-2 flex items-center gap-2">
 				{post.author.profilePic ? (
 					<ProfilePic
 						src={post.author.profilePic}
