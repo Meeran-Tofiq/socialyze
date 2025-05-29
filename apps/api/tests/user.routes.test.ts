@@ -1,9 +1,9 @@
 import request from "supertest";
 import express from "express";
-import userRouter from "../src/user/routes";
+import userRouter from "../src/endpoints/me/routes";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import mongoose from "mongoose";
-import UserModel from "../src/user/model";
+import UserModel from "../src/endpoints/me/model";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Original requireAuth mock function placeholder, will be replaced in each test as needed
