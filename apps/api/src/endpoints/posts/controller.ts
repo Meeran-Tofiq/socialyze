@@ -101,14 +101,27 @@ export const commentOnPost = async (req: Request, res: Response) => {
 	}
 };
 
-export const getFeed = async (_: Request, res: Response) => {
+export const getFeed = async (req: Request, res: Response) => {
 	logger.info(`[getFeed] - Fetching global post feed`);
 
 	try {
-		const feed = await PostModel.find().sort({ createdAt: -1 });
-		logger.info(`[getFeed] - Retrieved ${feed.length} posts`);
+		// Parse page and limit query params with defaults
+		const page = Math.max(1, parseInt(req.query.page as string) || 1);
+		const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string) || 20)); // max 100 per page
 
-		res.json(feed);
+		const skip = (page - 1) * limit;
+
+		const feed = await PostModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+
+		logger.info(
+			`[getFeed] - Retrieved ${feed.length} posts for page ${page} with limit ${limit}`,
+		);
+
+		res.json({
+			page,
+			limit,
+			posts: feed,
+		});
 	} catch (error) {
 		logger.error(`[getFeed] - Failed to get feed:`, error);
 		res.status(500).json({ message: "Failed to get feed" });
@@ -130,13 +143,24 @@ export const getFeedFromFollowing = async (req: Request, res: Response) => {
 
 		logger.debug(`[getFeedFromFollowing] - User follows ${user.following.length} users`);
 
+		const page = Math.max(1, parseInt(req.query.page as string) || 1);
+		const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string) || 20));
+		const skip = (page - 1) * limit;
+
 		const feed = await PostModel.find({ authorId: { $in: user.following } })
 			.sort({ createdAt: -1 })
-			.limit(50);
+			.skip(skip)
+			.limit(limit);
 
-		logger.info(`[getFeedFromFollowing] - Retrieved ${feed.length} posts from following`);
+		logger.info(
+			`[getFeedFromFollowing] - Retrieved ${feed.length} posts from following for page ${page} with limit ${limit}`,
+		);
 
-		res.json(feed);
+		res.json({
+			page,
+			limit,
+			posts: feed,
+		});
 	} catch (error) {
 		logger.error(
 			`[getFeedFromFollowing] - Failed to get feed for user ${authReq.user.id}:`,
