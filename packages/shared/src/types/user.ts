@@ -7,4 +7,15 @@ export interface User {
 	createdAt: string;
 	updatedAt: string;
 	username: string;
+	followers: string[];
+	following: string[];
+	pendingFollowRequests: string[];
+	sentFollowRequests: string[];
+}
+
+export interface UserPublic
+	extends Pick<User, "_id" | "username" | "profilePic" | "bio" | "createdAt"> {
+	isFollowing: boolean;
+	hasRequestedFollow: boolean;
+	isFollowedByCurrentUser: boolean;
 }

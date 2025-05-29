@@ -21,7 +21,7 @@ export default function UsernameForm({
 		}
 		setLoading(true);
 		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ ...userInfo, username }),
