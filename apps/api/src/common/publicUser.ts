@@ -1,6 +1,6 @@
 import { UserPublic } from "@socialyze/shared";
-import { generateDownloadUrl } from "./aws/profileImageService";
 import { UserDoc } from "@api/endpoints/me/model";
+import { generateDownloadUrl } from "./aws/mediaUtils";
 
 async function getProfilePicUrl(profilePic: string) {
 	if (profilePic.startsWith("http")) return profilePic;

@@ -1,29 +1,10 @@
 import { Request, Response } from "express";
 import { UserInfo } from "@socialyze/shared";
-import UserModel, { UserInput } from "./model";
+import UserModel from "./model";
 import logger from "@api/common/logger";
 import getManagementToken from "@api/common/auth0";
 import jwt from "jsonwebtoken";
-import * as profileImageService from "@api/common/aws/profileImageService";
-
-export async function findOrCreateUser({ email, name, profilePic }: UserInput) {
-	try {
-		let user = await UserModel.findOne({ email });
-
-		if (!user) {
-			logger.info(`User not found. Creating new user: ${email}`);
-			user = await UserModel.create({ email, name, profilePic });
-			logger.info(`Created new user: ${user._id}`);
-		} else {
-			logger.info(`Found existing user: ${user._id}`);
-		}
-
-		return user;
-	} catch (err) {
-		logger.error({ err }, `Error in findOrCreateUser for email: ${email}`);
-		throw err;
-	}
-}
+import { deleteMediaByKey, getPresignedDownloadUrl } from "../media/service";
 
 export async function findUserByEmail(email: string) {
 	return await UserModel.findOne({ email });
@@ -82,7 +63,7 @@ export async function getUserProfile(req: Request, res: Response) {
 		}
 
 		if (user.profilePic && !user.profilePic.startsWith("http")) {
-			user.profilePic = await profileImageService.generateDownloadUrl(user.profilePic);
+			user.profilePic = await getPresignedDownloadUrl(user.profilePic);
 		}
 
 		logger.info(`Profile fetched for user: ${user._id}`);
@@ -100,118 +81,35 @@ export async function updateUserProfile(req: Request, res: Response) {
 		const updates = req.body;
 		logger.info({ updates }, `Updating profile for user: ${authReq.user.email}`);
 
-		const user = await UserModel.findOneAndUpdate({ email: authReq.user.email }, updates, {
-			new: true,
-		});
-
-		if (!user) {
+		const existingUser = await UserModel.findOne({ email: authReq.user.email });
+		if (!existingUser) {
 			logger.warn(`User not found during update: ${authReq.user.email}`);
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		logger.info(`Profile updated for user: ${user._id}`);
+		// If profilePic is being updated and the existing user has a different one, delete the old one
+		if (
+			updates.profilePic &&
+			existingUser.profilePic &&
+			updates.profilePic !== existingUser.profilePic
+		) {
+			try {
+				await deleteMediaByKey(existingUser.profilePic);
+				logger.info(`Deleted old profile pic from S3: ${existingUser.profilePic}`);
+			} catch (deleteErr) {
+				logger.warn({ deleteErr }, "Failed to delete old profile picture from S3");
+			}
+		}
+
+		const user = await UserModel.findOneAndUpdate({ email: authReq.user.email }, updates, {
+			new: true,
+		});
+
+		logger.info(`Profile updated for user: ${user?._id}`);
 		res.json(user);
 	} catch (err) {
 		logger.error({ err }, "Failed to update user profile");
 		res.status(500).json({ error: "Failed to update profile" });
-	}
-}
-
-export async function retrieveProfilePicUploadUrl(req: Request, res: Response) {
-	const authReq = req as Request & { user: UserInfo };
-	const { fileName, fileType } = authReq.body;
-	const userId = authReq.user?.id;
-
-	logger.info(`Request to retrieve profile pic upload URL by user: ${userId}`);
-
-	if (!fileName || !fileType || !userId) {
-		logger.warn(
-			`Missing fields in upload URL request: fileName=${fileName}, fileType=${fileType}, userId=${userId}`,
-		);
-		return res.status(400).json({ error: "Missing fields" });
-	}
-
-	try {
-		const { uploadUrl, key } = await profileImageService.generateUploadUrl(
-			authReq.user.id,
-			fileName,
-			fileType,
-		);
-
-		logger.info(`Generated S3 upload URL for user: ${userId}, key: ${key}`);
-		res.json({ uploadUrl, key });
-	} catch (err) {
-		logger.error({ err }, `Failed to generate upload URL for user: ${userId}`);
-		res.status(500).json({ error: "Failed to generate upload URL" });
-	}
-}
-
-export async function uploadProfilePic(req: Request, res: Response) {
-	const { key } = req.body;
-	const authReq = req as Request & { user: UserInfo };
-	const userId = authReq.user.id;
-
-	logger.info(`Request to associate profile image key with user: ${userId}, key: ${key}`);
-
-	if (!key || !userId) {
-		logger.warn(`Missing key or userId in uploadProfilePic: key=${key}, userId=${userId}`);
-		return res.status(400).json({ error: "Missing key" });
-	}
-
-	try {
-		// Fetch the full user document from MongoDB
-		const user = await UserModel.findOne({ _id: userId });
-
-		if (!user) {
-			logger.warn(`User not found in DB for ID: ${userId}`);
-			return res.status(404).json({ error: "User not found" });
-		}
-
-		const oldProfilePic = user.profilePic;
-		logger.info("old prof pic:", oldProfilePic);
-
-		// Only delete if it's an internal S3-stored key (not an external URL)
-		if (oldProfilePic && !oldProfilePic.startsWith("http")) {
-			logger.info(`Deleting previous S3 image: ${oldProfilePic}`);
-
-			try {
-				await profileImageService.deleteOldProfilePic(oldProfilePic);
-				logger.info(`Successfully deleted old profile pic from S3: ${oldProfilePic}`);
-			} catch (s3Err) {
-				logger.error({ s3Err }, `Error deleting old profile image: ${oldProfilePic}`);
-			}
-		} else if (oldProfilePic) {
-			logger.info(`Old profile image is external (${oldProfilePic}) — skipping deletion`);
-		}
-
-		// Update user record with the new profilePic key
-		await UserModel.findOneAndUpdate({ _id: userId }, { profilePic: key });
-		logger.info(`Updated profilePic in DB for user: ${userId}`);
-
-		res.status(200).json({ message: "Profile image updated" });
-	} catch (err) {
-		logger.error({ err }, `Error handling profile image upload for user: ${userId}`);
-		res.status(500).json({ error: "Failed to update profile image" });
-	}
-}
-
-export async function getProfilePic(req: Request, res: Response) {
-	const { key } = req.query;
-
-	logger.info(`Request to get profile image URL for key: ${key}`);
-
-	if (typeof key !== "string") {
-		logger.warn(`Invalid or missing key in getProfilePic: ${key}`);
-		return res.status(400).json({ error: "Missing or invalid key" });
-	}
-
-	try {
-		const url = await profileImageService.generateDownloadUrl(key);
-		logger.info(`Signed URL generated for key: ${key}`);
-		res.json({ url });
-	} catch (err) {
-		logger.error({ err }, `Failed to generate signed URL for key: ${key}`);
-		res.status(500).json({ error: "Failed to generate signed URL" });
 	}
 }
 
@@ -255,3 +153,101 @@ export async function deleteUserProfile(req: Request, res: Response) {
 		res.status(500).json({ error: "Internal server error" });
 	}
 }
+
+// export async function retrieveProfilePicUploadUrl(req: Request, res: Response) {
+// 	const authReq = req as Request & { user: UserInfo };
+// 	const { fileName, fileType } = authReq.body;
+// 	const userId = authReq.user?.id;
+//
+// 	logger.info(`Request to retrieve profile pic upload URL by user: ${userId}`);
+//
+// 	if (!fileName || !fileType || !userId) {
+// 		logger.warn(
+// 			`Missing fields in upload URL request: fileName=${fileName}, fileType=${fileType}, userId=${userId}`,
+// 		);
+// 		return res.status(400).json({ error: "Missing fields" });
+// 	}
+//
+// 	try {
+// 		const { uploadUrl, key } = await profileImageService.generateUploadUrl(
+// 			authReq.user.id,
+// 			fileName,
+// 			fileType,
+// 		);
+//
+// 		logger.info(`Generated S3 upload URL for user: ${userId}, key: ${key}`);
+// 		res.json({ uploadUrl, key });
+// 	} catch (err) {
+// 		logger.error({ err }, `Failed to generate upload URL for user: ${userId}`);
+// 		res.status(500).json({ error: "Failed to generate upload URL" });
+// 	}
+// }
+//
+// export async function uploadProfilePic(req: Request, res: Response) {
+// 	const { key } = req.body;
+// 	const authReq = req as Request & { user: UserInfo };
+// 	const userId = authReq.user.id;
+//
+// 	logger.info(`Request to associate profile image key with user: ${userId}, key: ${key}`);
+//
+// 	if (!key || !userId) {
+// 		logger.warn(`Missing key or userId in uploadProfilePic: key=${key}, userId=${userId}`);
+// 		return res.status(400).json({ error: "Missing key" });
+// 	}
+//
+// 	try {
+// 		// Fetch the full user document from MongoDB
+// 		const user = await UserModel.findOne({ _id: userId });
+//
+// 		if (!user) {
+// 			logger.warn(`User not found in DB for ID: ${userId}`);
+// 			return res.status(404).json({ error: "User not found" });
+// 		}
+//
+// 		const oldProfilePic = user.profilePic;
+// 		logger.info("old prof pic:", oldProfilePic);
+//
+// 		// Only delete if it's an internal S3-stored key (not an external URL)
+// 		if (oldProfilePic && !oldProfilePic.startsWith("http")) {
+// 			logger.info(`Deleting previous S3 image: ${oldProfilePic}`);
+//
+// 			try {
+// 				await profileImageService.deleteOldProfilePic(oldProfilePic);
+// 				logger.info(`Successfully deleted old profile pic from S3: ${oldProfilePic}`);
+// 			} catch (s3Err) {
+// 				logger.error({ s3Err }, `Error deleting old profile image: ${oldProfilePic}`);
+// 			}
+// 		} else if (oldProfilePic) {
+// 			logger.info(`Old profile image is external (${oldProfilePic}) — skipping deletion`);
+// 		}
+//
+// 		// Update user record with the new profilePic key
+// 		await UserModel.findOneAndUpdate({ _id: userId }, { profilePic: key });
+// 		logger.info(`Updated profilePic in DB for user: ${userId}`);
+//
+// 		res.status(200).json({ message: "Profile image updated" });
+// 	} catch (err) {
+// 		logger.error({ err }, `Error handling profile image upload for user: ${userId}`);
+// 		res.status(500).json({ error: "Failed to update profile image" });
+// 	}
+// }
+//
+// export async function getProfilePic(req: Request, res: Response) {
+// 	const { key } = req.query;
+//
+// 	logger.info(`Request to get profile image URL for key: ${key}`);
+//
+// 	if (typeof key !== "string") {
+// 		logger.warn(`Invalid or missing key in getProfilePic: ${key}`);
+// 		return res.status(400).json({ error: "Missing or invalid key" });
+// 	}
+//
+// 	try {
+// 		const url = await profileImageService.generateDownloadUrl(key);
+// 		logger.info(`Signed URL generated for key: ${key}`);
+// 		res.json({ url });
+// 	} catch (err) {
+// 		logger.error({ err }, `Failed to generate signed URL for key: ${key}`);
+// 		res.status(500).json({ error: "Failed to generate signed URL" });
+// 	}
+// }
