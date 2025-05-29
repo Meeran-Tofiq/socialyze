@@ -1,61 +1,54 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useAuth } from "@web/providers/AuthProvider";
+import { useState } from "react";
 
-interface Props {
+type Props = {
+	onImageSelected: (file: File, key: string, previewUrl: string, uploadUrl: string) => void;
 	uploadUrlEndpoint: string;
-	onUploadCompleteAction: (key: string) => void;
-}
+};
 
-export default function ProfileImageUploader({ uploadUrlEndpoint, onUploadCompleteAction }: Props) {
-	const { token } = useAuth();
-	const [uploading, setUploading] = useState(false);
-	const inputRef = useRef<HTMLInputElement>(null);
+export default function ProfileImageUploader({ onImageSelected, uploadUrlEndpoint }: Props) {
+	const [error, setError] = useState("");
 
 	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
 
-		setUploading(true);
-
 		try {
+			// Request signed upload URL and key from backend
 			const res = await fetch(uploadUrlEndpoint, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify({ fileName: file.name, fileType: file.type }),
+				credentials: "include",
+				body: JSON.stringify({
+					prefix: "uploads",
+					fileName: file.name,
+					fileType: file.type,
+				}),
 			});
 
 			if (!res.ok) throw new Error("Failed to get upload URL");
+
 			const { uploadUrl, key } = await res.json();
 
-			await fetch(uploadUrl, {
-				method: "PUT",
-				headers: { "Content-Type": file.type },
-				body: file,
-			});
+			const previewUrl = URL.createObjectURL(file);
 
-			onUploadCompleteAction(key);
+			// Pass everything to parent to handle actual upload later
+			onImageSelected(file, key, previewUrl, uploadUrl);
+			setError("");
 		} catch (err) {
-			console.error("Upload error:", err);
-		} finally {
-			setUploading(false);
-			if (inputRef.current) inputRef.current.value = "";
+			console.error(err);
+			setError("Could not prepare image upload.");
 		}
 	};
 
 	return (
 		<div>
-			<input
-				ref={inputRef}
-				type="file"
-				accept="image/*"
-				onChange={handleFileChange}
-				disabled={uploading}
-			/>
+			<label className="mb-1 block font-medium text-white">Change Profile Picture</label>
+			<input type="file" accept="image/*" onChange={handleFileChange} />
+			{error && <p className="mt-2 text-red-500">{error}</p>}
 		</div>
 	);
 }
