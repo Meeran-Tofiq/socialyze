@@ -28,12 +28,7 @@ export default function UserCard({ user, onFollowChangeAction }: Props) {
 	return (
 		<div className="flex items-center justify-between rounded-xl border p-4 text-white">
 			<Link href={`/user/${user._id}`} className="flex items-center gap-4">
-				<ProfilePic
-					src={user.profilePic || "/default-avatar.png"}
-					alt={user.username}
-					width={48}
-					height={48}
-				/>
+				<ProfilePic src={user.profilePic} alt={user.username} width={48} height={48} />
 				<span className="font-semibold">{user.username}</span>
 			</Link>
 			<button

@@ -1,3 +1,5 @@
+import { UserPublic } from "./user";
+
 export interface Post {
 	_id: string;
 	authorId: string;
@@ -6,4 +8,8 @@ export interface Post {
 	comments: Comment[];
 	createdAt: string;
 	updatedAt: string;
+}
+
+export interface PostWithAuthor extends Omit<Post, "authorId"> {
+	author: UserPublic;
 }
