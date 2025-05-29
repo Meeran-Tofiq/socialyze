@@ -1,13 +1,27 @@
 import { Request, Response } from "express";
 import { UserInfo, UserPublic } from "@socialyze/shared";
-import UserModel from "@api/endpoints/me/model";
+import UserModel, { UserDoc } from "@api/endpoints/me/model";
 import logger from "@api/common/logger";
-import { generateDownloadUrl } from "@api/common/aws/profileImageService";
+import getPublicProfileFromUser from "@api/common/publicUser";
 
-async function getProfilePicUrl(profilePic: string) {
-	if (profilePic.startsWith("http")) return profilePic;
+// Extend helper to accept flags for follow status and fill them here:
+async function getUserPublicWithRelations(
+	user: UserDoc,
+	currentUser: UserDoc,
+): Promise<UserPublic> {
+	const publicUser = await getPublicProfileFromUser(user);
 
-	return await generateDownloadUrl(profilePic);
+	publicUser.isFollowing = currentUser.following.some(
+		(id) => id.toString() === user._id.toString(),
+	);
+	publicUser.hasRequestedFollow = currentUser.sentFollowRequests.some(
+		(id) => id.toString() === user._id.toString(),
+	);
+	publicUser.isFollowedByCurrentUser = user.followers.some(
+		(id) => id.toString() === currentUser._id.toString(),
+	);
+
+	return publicUser;
 }
 
 export async function getUserById(req: Request, res: Response) {
@@ -20,26 +34,14 @@ export async function getUserById(req: Request, res: Response) {
 			logger.warn(`User not found: ${authReq.user.id}`);
 			return res.status(404).json({ message: "User not found" });
 		}
+
 		const targetUser = await UserModel.findById(targetUserId);
 		if (!targetUser) {
 			logger.warn(`User not found: ${targetUserId}`);
 			return res.status(404).json({ error: "User not found" });
 		}
 
-		const profilePicUrl = targetUser.profilePic
-			? await getProfilePicUrl(targetUser.profilePic)
-			: undefined;
-
-		const publicUser: UserPublic = {
-			_id: targetUser._id.toString(),
-			username: targetUser.username,
-			profilePic: profilePicUrl,
-			bio: targetUser.bio,
-			createdAt: targetUser.createdAt.toISOString(),
-			isFollowing: currentUser?.following.includes(targetUser._id) ?? false,
-			hasRequestedFollow: currentUser?.sentFollowRequests.includes(targetUser._id) ?? false,
-			isFollowedByCurrentUser: targetUser.followers.includes(currentUser._id) ?? false,
-		};
+		const publicUser = await getUserPublicWithRelations(targetUser, currentUser);
 
 		logger.info(`Fetched public profile for user ${targetUser._id}`);
 		res.json(publicUser);
@@ -70,22 +72,7 @@ export async function getAllUsers(req: Request, res: Response) {
 			.sort({ createdAt: -1 });
 
 		const result: UserPublic[] = await Promise.all(
-			users.map(async (user) => {
-				const profilePicUrl = user.profilePic
-					? await getProfilePicUrl(user.profilePic)
-					: undefined;
-
-				return {
-					_id: user._id.toString(),
-					username: user.username,
-					profilePic: profilePicUrl,
-					bio: user.bio,
-					createdAt: user.createdAt.toISOString(),
-					isFollowing: currentUser.following.includes(user._id),
-					hasRequestedFollow: currentUser.sentFollowRequests.includes(user._id),
-					isFollowedByCurrentUser: user.followers.includes(currentUser._id),
-				};
-			}),
+			users.map((user) => getUserPublicWithRelations(user, currentUser)),
 		);
 
 		logger.info(
@@ -117,6 +104,7 @@ export async function getGroupedUsers(req: Request, res: Response) {
 
 		const allUsers = await UserModel.find({ _id: { $ne: currentUser._id } });
 
+		// Use Sets for fast lookup
 		const followingSet = new Set(currentUser.following.map((id) => id.toString()));
 		const followersSet = new Set(currentUser.followers.map((id) => id.toString()));
 		const pendingSet = new Set(currentUser.sentFollowRequests.map((id) => id.toString()));
@@ -130,29 +118,16 @@ export async function getGroupedUsers(req: Request, res: Response) {
 
 		for (const user of allUsers) {
 			const userId = user._id.toString();
-			const profilePicUrl = user.profilePic
-				? await getProfilePicUrl(user.profilePic)
-				: undefined;
-
-			const userPublic: UserPublic = {
-				_id: userId,
-				username: user.username,
-				profilePic: profilePicUrl,
-				bio: user.bio,
-				createdAt: user.createdAt.toISOString(),
-				isFollowing: followingSet.has(userId),
-				hasRequestedFollow: pendingSet.has(userId),
-				isFollowedByCurrentUser: followersSet.has(userId),
-			};
+			const publicUser = await getUserPublicWithRelations(user, currentUser);
 
 			if (followingSet.has(userId)) {
-				grouped.following.push(userPublic);
+				grouped.following.push(publicUser);
 			} else if (followersSet.has(userId)) {
-				grouped.followers.push(userPublic);
+				grouped.followers.push(publicUser);
 			} else if (pendingSet.has(userId)) {
-				grouped.pending.push(userPublic);
+				grouped.pending.push(publicUser);
 			} else {
-				grouped.others.push(userPublic);
+				grouped.others.push(publicUser);
 			}
 		}
 
