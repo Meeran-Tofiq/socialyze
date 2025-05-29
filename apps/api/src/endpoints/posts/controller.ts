@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { UserInfo } from "@socialyze/shared";
+import { UserInfo, UserPublic } from "@socialyze/shared";
 import logger from "@api/common/logger";
 import getPublicProfileFromUser from "@api/common/publicUser";
 
@@ -9,14 +9,41 @@ import PostModel, { PostDoc } from "./model";
 
 async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 	const enriched = [];
+
+	// Collect all unique userIds (authors of posts + comments)
+	const userIds = new Set<string>();
 	for (const post of posts) {
-		const authorUser = await UserModel.findById(post.authorId);
-		const authorPublic = authorUser ? await getPublicProfileFromUser(authorUser) : null;
+		userIds.add(post.authorId.toString());
+		for (const comment of post.comments) {
+			userIds.add(comment.authorId.toString());
+		}
+	}
+
+	// Load all users at once
+	const users = await UserModel.find({ _id: { $in: Array.from(userIds) } }).lean();
+	const userEntries: [string, UserPublic][] = await Promise.all(
+		users.map(async (user): Promise<[string, UserPublic]> => {
+			const publicProfile = await getPublicProfileFromUser(user);
+			return [user._id.toString(), publicProfile];
+		}),
+	);
+	const userMap = new Map(userEntries);
+
+	for (const post of posts) {
+		const authorPublic = userMap.get(post.authorId.toString()) ?? null;
+
+		const enrichedComments = post.comments.map((comment) => ({
+			...comment.toObject(),
+			author: userMap.get(comment.authorId.toString()) ?? null,
+		}));
+
 		enriched.push({
 			...post.toObject(),
 			author: authorPublic,
+			comments: enrichedComments,
 		});
 	}
+
 	return enriched;
 }
 
@@ -188,5 +215,44 @@ export async function getUserPosts(req: Request, res: Response) {
 	} catch (error) {
 		logger.error(`[getUserPosts] - Failed to get posts for user ${userId}:`, error);
 		return res.status(500).json({ message: "Failed to get user posts" });
+	}
+}
+
+export async function getPostComments(req: Request, res: Response) {
+	const { postId } = req.params;
+
+	logger.info(`[getPostComments] - Fetching comments for post ${postId}`);
+
+	try {
+		const post = await PostModel.findById(postId).lean();
+
+		if (!post) {
+			logger.warn(`[getPostComments] - Post not found: ${postId}`);
+			return res.status(404).json({ message: "Post not found" });
+		}
+
+		const commentDocs = post.comments;
+
+		// Optional: populate basic author info for each comment
+		const userIds = commentDocs.map((c) => c.authorId.toString());
+		const users = await UserModel.find({ _id: { $in: userIds } })
+			.select("_id username profilePic")
+			.lean();
+
+		const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+
+		const enrichedComments = commentDocs.map((comment) => ({
+			...comment,
+			author: userMap.get(comment.authorId.toString()) ?? null,
+		}));
+
+		logger.info(
+			`[getPostComments] - Found ${enrichedComments.length} comments for post ${postId}`,
+		);
+
+		return res.json(enrichedComments);
+	} catch (error) {
+		logger.error(`[getPostComments] - Failed to get comments for post ${postId}:`, error);
+		return res.status(500).json({ message: "Failed to get comments" });
 	}
 }

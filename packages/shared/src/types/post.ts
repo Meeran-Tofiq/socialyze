@@ -1,3 +1,4 @@
+import { CommentWithAuthor } from "./comment";
 import { UserPublic } from "./user";
 
 export interface Post {
@@ -10,6 +11,7 @@ export interface Post {
 	updatedAt: string;
 }
 
-export interface PostWithAuthor extends Omit<Post, "authorId"> {
+export interface PostWithAuthorAndComment extends Omit<Post, "authorId" | "comments"> {
 	author: UserPublic;
+	comments: CommentWithAuthor[];
 }

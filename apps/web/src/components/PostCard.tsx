@@ -1,36 +1,35 @@
 import { useState } from "react";
-import { PostWithAuthor } from "@socialyze/shared";
+import { CommentWithAuthor, PostWithAuthorAndComment } from "@socialyze/shared";
 import ProfilePic from "./ProfilePic";
 import { useAuth } from "@web/providers/AuthProvider";
+import NewCommentForm from "./NewCommentForm";
 
 interface PostCardProps {
-	post: PostWithAuthor;
+	post: PostWithAuthorAndComment;
 }
 
 export default function PostCard({ post }: PostCardProps) {
-	const { user } = useAuth();
+	const { user, token } = useAuth();
 	const userId = user?._id ?? "";
 
 	const createdDate = new Date(post.createdAt).toLocaleString();
-	const { token } = useAuth();
 
 	const [likes, setLikes] = useState(post.likes);
+	const [comments, setComments] = useState<CommentWithAuthor[]>(post.comments);
 	const [isToggling, setIsToggling] = useState(false);
 
 	const userHasLiked = likes.includes(userId);
 
 	const toggleLike = async () => {
-		if (isToggling) return; // prevent spamming clicks
-
+		if (isToggling) return;
 		setIsToggling(true);
 
 		const originalLikes = likes;
 
-		// Optimistic update
 		if (userHasLiked) {
-			setLikes((prevLikes) => prevLikes.filter((id) => id !== userId));
+			setLikes((prev) => prev.filter((id) => id !== userId));
 		} else {
-			setLikes((prevLikes) => [...prevLikes, userId]);
+			setLikes((prev) => [...prev, userId]);
 		}
 
 		try {
@@ -46,11 +45,27 @@ export default function PostCard({ post }: PostCardProps) {
 			const updatedPost = await res.json();
 			setLikes(updatedPost.likes);
 		} catch {
-			// Rollback on error
 			setLikes(originalLikes);
 			alert("Error toggling like. Please try again.");
 		} finally {
 			setIsToggling(false);
+		}
+	};
+
+	const fetchComments = async () => {
+		try {
+			const res = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/posts/${post._id}/comments`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				},
+			);
+			const data = await res.json();
+			setComments(data);
+		} catch {
+			alert("Failed to load comments.");
 		}
 	};
 
@@ -72,7 +87,9 @@ export default function PostCard({ post }: PostCardProps) {
 					<p className="text-xs text-gray-400">{createdDate}</p>
 				</div>
 			</div>
+
 			<p className="whitespace-pre-wrap text-gray-200">{post.content}</p>
+
 			<div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
 				<button
 					onClick={toggleLike}
@@ -86,8 +103,22 @@ export default function PostCard({ post }: PostCardProps) {
 					{userHasLiked ? "♥ Liked" : "♡ Like"}
 				</button>
 				<span>{likes.length} Likes</span>
-				<span>{post.comments.length} Comments</span>
+				<span>{comments && comments.length} Comments</span>
 			</div>
+
+			<div className="mt-4 space-y-2 border-t border-gray-700 pt-2">
+				{comments &&
+					comments.map((comment) => (
+						<div key={comment._id} className="text-sm text-gray-300">
+							<span className="font-semibold text-gray-200">
+								{comment.author.username}
+							</span>
+							: {comment.content}
+						</div>
+					))}
+			</div>
+
+			<NewCommentForm postId={post._id} onCommentCreated={fetchComments} />
 		</div>
 	);
 }
