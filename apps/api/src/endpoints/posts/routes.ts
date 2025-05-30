@@ -8,6 +8,7 @@ import {
 	getFeedFromFollowing,
 	getUserPosts,
 	getPostComments,
+	deletePost,
 } from "./controller";
 
 const postsRouter = express.Router();
@@ -26,5 +27,6 @@ postsRouter.post("/", createPost); // Create a new post
 postsRouter.post("/:postId/like", toggleLikePost); // Like/unlike a post
 postsRouter.post("/:postId/comment", commentOnPost); // Comment on a post
 postsRouter.get("/:postId/comments", getPostComments); // get comments of a post
+postsRouter.delete("/:postId", deletePost); // delete post
 
 export default postsRouter;

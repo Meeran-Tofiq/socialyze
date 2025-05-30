@@ -6,7 +6,7 @@ import getPublicProfileFromUser from "@api/common/publicUser";
 
 import UserModel from "../me/model";
 import PostModel, { PostDoc } from "./model";
-import { getPresignedDownloadUrl } from "../media/service";
+import { getPresignedDownloadUrl, deleteMediaByKey } from "../media/service";
 import { ObjectId } from "mongodb";
 
 async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
@@ -280,5 +280,51 @@ export async function getPostComments(req: Request, res: Response) {
 	} catch (error) {
 		logger.error(`[getPostComments] - Failed to get comments for post ${postId}:`, error);
 		return res.status(500).json({ message: "Failed to get comments" });
+	}
+}
+
+export async function deletePost(req: Request, res: Response) {
+	const authReq = req as Request & { user: { id: string } };
+	const { postId } = req.params;
+	const userId = authReq.user.id;
+
+	try {
+		const post = await PostModel.findById(postId);
+
+		if (!post) {
+			logger.warn(`[deletePost] - Post not found: ${postId}`);
+			return res.status(404).json({ message: "Post not found" });
+		}
+
+		// Check if the logged-in user is the author
+		if (post.authorId.toString() !== userId) {
+			logger.warn(`[deletePost] - User ${userId} not authorized to delete post ${postId}`);
+			return res.status(403).json({ message: "Not authorized to delete this post" });
+		}
+
+		// Delete associated media from S3
+		if (post.media && Array.isArray(post.media)) {
+			for (const key of post.media) {
+				try {
+					await deleteMediaByKey(key);
+					logger.info(`[deletePost] - Deleted media key ${key} for post ${postId}`);
+				} catch (err) {
+					logger.error(
+						`[deletePost] - Failed to delete media key ${key} for post ${postId}:`,
+						err,
+					);
+				}
+			}
+		}
+
+		// Delete the post document itself
+		await post.deleteOne();
+
+		logger.info(`[deletePost] - Post ${postId} deleted by user ${userId}`);
+
+		return res.status(200).json({ message: "Post deleted successfully" });
+	} catch (error) {
+		logger.error(`[deletePost] - Failed to delete post ${postId}:`, error);
+		return res.status(500).json({ message: "Failed to delete post" });
 	}
 }
