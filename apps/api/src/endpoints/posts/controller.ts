@@ -283,6 +283,83 @@ export async function getPostComments(req: Request, res: Response) {
 	}
 }
 
+export async function updatePost(req: Request, res: Response) {
+	const authReq = req as Request & { user: { id: string } };
+	const { postId } = req.params;
+	const userId = authReq.user.id;
+
+	try {
+		const post = await PostModel.findById(postId);
+
+		if (!post) {
+			logger.warn(`[updatePost] - Post not found: ${postId}`);
+			return res.status(404).json({ message: "Post not found" });
+		}
+
+		if (post.authorId.toString() !== userId) {
+			logger.warn(`[updatePost] - User ${userId} not authorized to update post ${postId}`);
+			return res.status(403).json({ message: "Not authorized to update this post" });
+		}
+
+		// Parsing fields - content and existingMedia keys
+		// We expect content as text and existingMedia as a JSON string in form-data
+		const content = req.body.content;
+		let existingMedia: string[] = [];
+		if (req.body.existingMedia) {
+			try {
+				existingMedia = JSON.parse(req.body.existingMedia);
+			} catch {
+				logger.warn(`[updatePost] - Failed to parse existingMedia for post ${postId}`);
+				existingMedia = [];
+			}
+		}
+
+		// Delete media keys removed by user
+		const removedMedia = post.media?.filter((key) => !existingMedia.includes(key)) ?? [];
+		for (const key of removedMedia) {
+			try {
+				await deleteMediaByKey(key);
+				logger.info(`[updatePost] - Deleted removed media key ${key} from post ${postId}`);
+			} catch (err) {
+				logger.error(
+					`[updatePost] - Failed to delete media key ${key} from post ${postId}:`,
+					err,
+				);
+			}
+		}
+
+		// Upload new media files if any (files come from multipart/form-data)
+		let newMediaKeys: string[] = [];
+		if (req.files && Array.isArray(req.files)) {
+			try {
+				newMediaKeys = await uploadMediaFiles(req.files); // your util to upload files to S3 and return their keys
+				logger.info(
+					`[updatePost] - Uploaded ${newMediaKeys.length} new media files for post ${postId}`,
+				);
+			} catch (err) {
+				logger.error(
+					`[updatePost] - Failed uploading new media files for post ${postId}:`,
+					err,
+				);
+				return res.status(500).json({ message: "Failed to upload media files" });
+			}
+		}
+
+		// Update post document fields
+		post.content = content;
+		post.media = [...existingMedia, ...newMediaKeys];
+
+		await post.save();
+
+		logger.info(`[updatePost] - Post ${postId} updated by user ${userId}`);
+
+		return res.status(200).json(post);
+	} catch (error) {
+		logger.error(`[updatePost] - Failed to update post ${postId}:`, error);
+		return res.status(500).json({ message: "Failed to update post" });
+	}
+}
+
 export async function deletePost(req: Request, res: Response) {
 	const authReq = req as Request & { user: { id: string } };
 	const { postId } = req.params;
