@@ -1,16 +1,10 @@
 name: Backend CI
 
 on:
-    push:
-        paths:
-            - "apps/api/**"
-            - ".eslintrc.js"
-            - "package.json"
-            - "pnpm-lock.yaml"
-            - "tsconfig.json"
     pull_request:
         paths:
             - "apps/api/**"
+            - "packages/shared/**"
             - ".eslintrc.js"
             - "package.json"
             - "pnpm-lock.yaml"
@@ -38,6 +32,9 @@ jobs:
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
+
+            - name: Build shared package
+              run: pnpm --filter @socialyze/shared run build
 
             - name: Run lint
               run: pnpm run lint
