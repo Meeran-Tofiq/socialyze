@@ -3,6 +3,7 @@ import { CommentWithAuthor, PostWithAuthorAndComment } from "@socialyze/shared";
 import ProfilePic from "./ProfilePic";
 import { useAuth } from "@web/providers/AuthProvider";
 import NewCommentForm from "./NewCommentForm";
+import PostImages from "./PostImages";
 
 interface PostCardProps {
 	post: PostWithAuthorAndComment;
@@ -89,6 +90,8 @@ export default function PostCard({ post }: PostCardProps) {
 			</div>
 
 			<p className="whitespace-pre-wrap text-gray-200">{post.content}</p>
+
+			<PostImages images={post.mediaUrl ?? []} />
 
 			<div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
 				<button

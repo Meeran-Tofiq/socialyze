@@ -55,7 +55,7 @@ export default function useProfileForm() {
 				},
 				credentials: "include",
 				body: JSON.stringify({
-					prefix: "uploads",
+					prefix: "uploads/profile-picture",
 					fileName: compressedFile.name,
 					fileType: compressedFile.type,
 				}),

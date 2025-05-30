@@ -6,6 +6,7 @@ import getPublicProfileFromUser from "@api/common/publicUser";
 
 import UserModel from "../me/model";
 import PostModel, { PostDoc } from "./model";
+import { getPresignedDownloadUrl } from "../media/service";
 
 async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 	const enriched = [];
@@ -37,10 +38,22 @@ async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 			author: userMap.get(comment.authorId.toString()) ?? null,
 		}));
 
+		// Convert media keys to presigned URLs
+		let mediaUrls: string[] = [];
+		if (post.mediaUrl && Array.isArray(post.mediaUrl)) {
+			mediaUrls = await Promise.all(
+				post.mediaUrl.map(async (key) => {
+					if (key.startsWith("http")) return key; // already a URL, just return
+					return getPresignedDownloadUrl(key);
+				}),
+			);
+		}
+
 		enriched.push({
 			...post.toObject(),
 			author: authorPublic,
 			comments: enrichedComments,
+			mediaUrl: mediaUrls, // overwrite with presigned URLs
 		});
 	}
 
@@ -52,10 +65,20 @@ export async function createPost(req: Request, res: Response) {
 	logger.info(`[createPost] - User ${authReq.user.id} is creating a post`);
 
 	try {
-		const { content } = req.body;
+		const { content, mediaUrl } = req.body; // expect mediaUrl array here
 		const authorId = authReq.user.id;
 
-		const newPost = await PostModel.create({ authorId, content, likes: [], comments: [] });
+		// Validate mediaUrl is an array if provided
+		const mediaKeys = Array.isArray(mediaUrl) ? mediaUrl : [];
+
+		const newPost = await PostModel.create({
+			authorId,
+			content,
+			likes: [],
+			comments: [],
+			mediaUrl: mediaKeys, // save the keys here
+		});
+
 		logger.info(`[createPost] - Post created with id: ${newPost._id}`);
 
 		return res.status(201).json(newPost);

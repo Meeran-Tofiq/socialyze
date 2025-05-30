@@ -21,7 +21,7 @@ export default function NewCommentForm({ postId, onCommentCreated }: NewCommentF
 
 		setIsSubmitting(true);
 		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`, {
+			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comment`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

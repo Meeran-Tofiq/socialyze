@@ -2,62 +2,90 @@
 
 import { useAuth } from "@web/providers/AuthProvider";
 import { useState } from "react";
+import { ImageUploadInput } from "./ImageUploadInput";
+import { useImageUpload } from "@web/hooks/useImageUpload";
+import { uploadImages } from "@web/utility/uploadImage";
+import { ImagePreviewList } from "./ImagePreview";
+import { TextAreaInput } from "./TextAreaInput";
 
 interface NewPostFormProps {
 	onPostCreated?: () => void;
 }
 
 export default function NewPostForm({ onPostCreated }: NewPostFormProps) {
+	const { token, user } = useAuth();
 	const [content, setContent] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const { token, user } = useAuth();
+	const { selectedFiles, previews, error, fileInputRef, handleFileChange, removeImage } =
+		useImageUpload();
+	const [formError, setFormError] = useState("");
+
+	if (!user) return null;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!content.trim()) return;
+		if (!content.trim() && selectedFiles.length === 0) {
+			setFormError("Please enter content or select at least one image.");
+			return;
+		}
 
 		setIsSubmitting(true);
+		setFormError("");
+
 		try {
+			const keys = await uploadImages(token!, selectedFiles);
+
 			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify({ content }),
+				body: JSON.stringify({ content, mediaUrl: keys }),
 			});
 
 			if (!res.ok) throw new Error("Failed to create post");
 
 			setContent("");
+			if (fileInputRef.current) {
+				fileInputRef.current.value = "";
+			}
+			previews.forEach(URL.revokeObjectURL);
+
 			if (onPostCreated) onPostCreated();
-		} catch {
-			alert("Error creating post. Please try again.");
+		} catch (err: unknown) {
+			setFormError((err as Error).message || "Error creating post.");
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
-
-	if (!user) return null;
 
 	return (
 		<form
 			onSubmit={handleSubmit}
 			className="mx-auto mb-6 max-w-xl rounded bg-gray-800 p-4 shadow-lg shadow-black/50"
 		>
-			<textarea
+			<TextAreaInput
 				value={content}
 				onChange={(e) => setContent(e.target.value)}
-				placeholder="What's on your mind?"
-				className="w-full resize-none rounded bg-gray-700 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				rows={4}
 				disabled={isSubmitting}
 			/>
+
+			<ImageUploadInput
+				disabled={isSubmitting}
+				onChange={handleFileChange}
+				inputRef={fileInputRef}
+			/>
+
+			{previews.length > 0 && <ImagePreviewList previews={previews} onRemove={removeImage} />}
+
+			{(error || formError) && <p className="mt-2 text-red-500">{error || formError}</p>}
+
 			<div className="mt-2 flex justify-end">
 				<button
 					type="submit"
-					disabled={isSubmitting || !content.trim()}
-					className={`rounded bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50`}
+					disabled={isSubmitting || (!content.trim() && selectedFiles.length === 0)}
+					className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isSubmitting ? "Posting..." : "Post"}
 				</button>
