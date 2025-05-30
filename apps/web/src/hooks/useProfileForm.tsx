@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { useAuth } from "@web/providers/AuthProvider";
 import { User, UserPublic } from "@socialyze/shared";
+import { useRouter } from "next/navigation";
 
 export default function useProfileForm() {
+	const router = useRouter();
+
 	const { token, logout, refetchUser, user } = useAuth();
 	const [formData, setFormData] = useState<Partial<User>>({});
 	const [loading, setLoading] = useState(true);
@@ -106,6 +109,8 @@ export default function useProfileForm() {
 			setPreviewUrl(null);
 			refetchUser();
 			setError("");
+
+			router.back();
 		} catch {
 			setError("Failed to save changes.");
 		} finally {

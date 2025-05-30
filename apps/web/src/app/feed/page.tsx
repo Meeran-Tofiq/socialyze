@@ -1,53 +1,18 @@
 "use client";
 
-import { PostWithAuthorAndComment } from "@socialyze/shared";
 import NewPostForm from "@web/components/NewPostForm";
-import PostCard from "@web/components/PostCard";
-import { useAuth } from "@web/providers/AuthProvider";
-import { useCallback, useEffect, useState } from "react";
+import PostList from "@web/components/PostList";
+import { useState } from "react";
+import { usePosts } from "@web/hooks/usePosts";
 
 export default function FeedPage() {
-	const { token } = useAuth();
-	const [posts, setPosts] = useState<PostWithAuthorAndComment[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
 	const [showFollowingOnly, setShowFollowingOnly] = useState(false);
 
 	const feedUri = showFollowingOnly
 		? `${process.env.NEXT_PUBLIC_API_URL}/posts/feed/following`
 		: `${process.env.NEXT_PUBLIC_API_URL}/posts/feed`;
 
-	const fetchFeed = useCallback(async () => {
-		if (!token) return;
-
-		try {
-			const res = await fetch(feedUri, {
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			if (!res.ok) throw new Error(`Failed to fetch feed: ${res.statusText}`);
-
-			const data = await res.json();
-			setPosts(data.posts);
-			setError(null);
-		} catch (err: unknown) {
-			if (err instanceof Error) {
-				setError(err.message || "Unknown error");
-			}
-		} finally {
-			setLoading(false);
-		}
-	}, [token, feedUri]);
-
-	useEffect(() => {
-		if (token) {
-			setLoading(true);
-			fetchFeed();
-		} else {
-			setPosts([]);
-			setLoading(true);
-			setError(null);
-		}
-	}, [token, fetchFeed]);
+	const { posts, loading, error, refetch } = usePosts(feedUri);
 
 	return (
 		<>
@@ -70,22 +35,17 @@ export default function FeedPage() {
 				</button>
 			</div>
 
-			{loading ? (
-				<div className="mt-10 text-center text-gray-400">Loading feed...</div>
-			) : error ? (
-				<div className="mt-10 text-center text-red-500">Error: {error}</div>
-			) : posts.length === 0 ? (
-				<div className="mt-10 text-center text-gray-400">No posts available.</div>
-			) : (
-				<>
-					<NewPostForm onPostCreated={fetchFeed} />
-					<div className="space-y-4">
-						{posts.map((post) => (
-							<PostCard key={post._id} post={post} />
-						))}
-					</div>
-				</>
-			)}
+			<NewPostForm onPostCreated={refetch} />
+			<PostList
+				posts={posts}
+				loading={loading}
+				error={error}
+				emptyMessage={
+					showFollowingOnly
+						? "You either follow no one, or they are boring."
+						: "No posts available."
+				}
+			/>
 		</>
 	);
 }

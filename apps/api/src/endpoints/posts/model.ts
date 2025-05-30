@@ -47,7 +47,7 @@ const PostSchema = new Schema<PostDoc>(
 		content: { type: String, required: true },
 		likes: [{ type: ObjectId, ref: "User" }],
 		comments: [CommentSchema],
-		mediaUrl: {
+		media: {
 			type: [String],
 			validate: {
 				validator: (arr: string[]) => arr.length <= 5,
