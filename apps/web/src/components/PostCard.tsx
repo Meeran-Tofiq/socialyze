@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { CommentWithAuthor, PostWithAuthorAndComment } from "@socialyze/shared";
-import ProfilePic from "./ProfilePic";
 import { useAuth } from "@web/providers/AuthProvider";
+
+import PostHeader from "./PostHeader";
+import PostContent from "./PostContent";
+import PostActions from "./PostActions";
+import PostComments from "./PostComments";
 import NewCommentForm from "./NewCommentForm";
-import PostImages from "./PostImages";
 
 interface PostCardProps {
 	post: PostWithAuthorAndComment;
@@ -12,8 +15,6 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
 	const { user, token } = useAuth();
 	const userId = user?._id ?? "";
-
-	const createdDate = new Date(post.createdAt).toLocaleString();
 
 	const [likes, setLikes] = useState(post.likes);
 	const [comments, setComments] = useState<CommentWithAuthor[]>(post.comments);
@@ -90,68 +91,21 @@ export default function PostCard({ post }: PostCardProps) {
 
 	return (
 		<div className="mx-auto mb-4 max-w-xl rounded bg-gray-800 p-4 shadow-lg shadow-black/50">
-			<div className="mb-2 flex items-center justify-between gap-2">
-				<div className="mb-2 flex items-center gap-2">
-					{post.author.profilePic ? (
-						<ProfilePic
-							src={post.author.profilePic}
-							alt={post.author.username}
-							width={32}
-							height={32}
-						/>
-					) : (
-						<div className="mr-3 h-10 w-10 rounded-full bg-gray-600" />
-					)}
-					<div>
-						<p className="font-semibold text-gray-100">{post.author.username}</p>
-						<p className="text-xs text-gray-400">{createdDate}</p>
-					</div>
-				</div>
-				{post.author._id === userId && (
-					<button
-						onClick={handleDelete}
-						disabled={isDeleting}
-						className="right-2 top-2 text-red-500 hover:text-red-700"
-						aria-label="Delete post"
-						title="Delete post"
-					>
-						🗑️
-					</button>
-				)}
-			</div>
-
-			<p className="whitespace-pre-wrap text-gray-200">{post.content}</p>
-
-			<PostImages images={post.media ?? []} />
-
-			<div className="mt-3 flex items-center space-x-2 text-sm text-gray-400">
-				<button
-					onClick={toggleLike}
-					disabled={isToggling}
-					className={`rounded px-2 text-2xl font-semibold transition-colors ${
-						userHasLiked
-							? "text-red-600 hover:bg-red-700"
-							: "text-gray-700 hover:bg-gray-600"
-					} ${isToggling ? "cursor-not-allowed opacity-50" : ""}`}
-				>
-					{userHasLiked ? "♥" : "♡"}
-				</button>
-				<span>{likes.length} Likes</span>
-				<span>{comments && comments.length} Comments</span>
-			</div>
-
-			<div className="mt-4 space-y-2 border-t border-gray-700 pt-2">
-				{comments &&
-					comments.map((comment) => (
-						<div key={comment._id} className="text-sm text-gray-300">
-							<span className="font-semibold text-gray-200">
-								{comment.author ? comment.author.username : "Unknown user"}
-							</span>
-							: {comment.content}
-						</div>
-					))}
-			</div>
-
+			<PostHeader
+				post={post}
+				userId={userId}
+				onDelete={handleDelete}
+				isDeleting={isDeleting}
+			/>
+			<PostContent content={post.content} media={post.media} />
+			<PostActions
+				userHasLiked={userHasLiked}
+				likesCount={likes.length}
+				commentsCount={comments.length}
+				onToggleLike={toggleLike}
+				isToggling={isToggling}
+			/>
+			<PostComments comments={comments} />
 			<NewCommentForm postId={post._id} onCommentCreated={fetchComments} />
 		</div>
 	);
