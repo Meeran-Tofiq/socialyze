@@ -1,108 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { User } from "@socialyze/shared";
-import { useAuth } from "@web/providers/AuthProvider";
+import useProfileForm from "@web/hooks/useProfileForm";
 import ConfirmModal from "../components/ConfirmModal";
-import ProfileImageUploader from "../components/ProfileImageUploader";
-import ProfilePic from "./ProfilePic";
+import ProfileImageInput from "./ProfileImageInput";
 
 export default function ProfileForm() {
-	const { token, logout, refetchUser, user } = useAuth();
-	const [formData, setFormData] = useState<Partial<User>>({});
-	const [loading, setLoading] = useState(true);
-	const [saving, setSaving] = useState(false);
-	const [error, setError] = useState("");
-	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [deleting, setDeleting] = useState(false);
-
-	useEffect(() => {
-		async function fetchProfile() {
-			try {
-				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-					credentials: "include",
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				if (!res.ok) throw new Error("Failed to fetch");
-				const data = await res.json();
-				setFormData(data);
-			} catch {
-				setError("Failed to load profile.");
-			} finally {
-				setLoading(false);
-			}
-		}
-
-		if (token) fetchProfile();
-	}, [token]);
-
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData({ ...formData, [e.target.name]: e.target.value });
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setSaving(true);
-		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				credentials: "include",
-				body: JSON.stringify({ username: formData.username }), // only send username update
-			});
-			if (!res.ok) throw new Error("Failed to save");
-			setError("");
-		} catch {
-			setError("Failed to save changes.");
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	const handleDeleteConfirm = async () => {
-		setDeleting(true);
-		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
-				method: "DELETE",
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-				credentials: "include",
-			});
-			if (!res.ok) throw new Error("Failed to delete");
-			setError("");
-			setIsModalOpen(false);
-			alert("Profile deleted successfully.");
-			logout();
-		} catch {
-			setError("Failed to delete profile.");
-		} finally {
-			setDeleting(false);
-		}
-	};
-
-	const handleImageUploadComplete = async (key: string) => {
-		try {
-			await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/upload-pic`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				credentials: "include",
-				body: JSON.stringify({ key }),
-			});
-			setFormData((prev) => ({ ...prev, profilePic: key }));
-			refetchUser();
-		} catch {
-			console.error("Failed to save image key");
-		}
-	};
+	const {
+		formData,
+		loading,
+		saving,
+		error,
+		handleChange,
+		handleSubmit,
+		isModalOpen,
+		setIsModalOpen,
+		handleDeleteConfirm,
+		deleting,
+		previewUrl,
+		handleFileChange,
+		user,
+	} = useProfileForm();
 
 	if (loading) return <p>Loading...</p>;
 	if (error) return <p className="text-red-500">{error}</p>;
@@ -122,13 +39,11 @@ export default function ProfileForm() {
 					/>
 				</div>
 
-				{formData.profilePic && (
-					<ProfilePic src={user?.profilePic} width={128} height={128} />
-				)}
-
-				<ProfileImageUploader
-					uploadUrlEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/me/upload-url`}
-					onUploadCompleteAction={handleImageUploadComplete}
+				<ProfileImageInput
+					previewUrl={previewUrl}
+					userPicKey={user?.profilePic}
+					onChange={handleFileChange}
+					disabled={saving || deleting}
 				/>
 
 				<div className="flex items-center justify-between">
@@ -139,7 +54,6 @@ export default function ProfileForm() {
 					>
 						{saving ? "Saving..." : "Save"}
 					</button>
-
 					<button
 						type="button"
 						disabled={saving || deleting}

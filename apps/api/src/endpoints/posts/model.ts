@@ -1,9 +1,17 @@
+import { Comment, Post } from "@socialyze/shared";
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 const { ObjectId } = Schema.Types;
 
+export type PostInput = Omit<
+	Post,
+	"_id" | "createdAt" | "updatedAt" | "likes" | "comments" | "authorId"
+>;
+
+export type CommentInput = Omit<Comment, "_id" | "createdAt" | "updatedAt" | "postId" | "authorId">;
+
 // Comment document with ObjectId fields
-interface CommentDoc extends Document {
+interface CommentDoc extends Document, CommentInput {
 	_id: Types.ObjectId;
 	content: string;
 	authorId: Types.ObjectId;
@@ -22,14 +30,15 @@ const CommentSchema = new Schema<CommentDoc>(
 );
 
 // Post document using ObjectId and embedded comments
-interface PostDoc extends Document {
+interface PostDoc extends Document, PostInput {
 	_id: Types.ObjectId;
 	authorId: Types.ObjectId;
-	content: string;
+	content?: string;
 	likes: Types.ObjectId[];
 	comments: Types.DocumentArray<CommentDoc>;
 	createdAt: Date;
 	updatedAt: Date;
+	media?: string[];
 }
 
 const PostSchema = new Schema<PostDoc>(
@@ -38,6 +47,13 @@ const PostSchema = new Schema<PostDoc>(
 		content: { type: String, required: true },
 		likes: [{ type: ObjectId, ref: "User" }],
 		comments: [CommentSchema],
+		mediaUrl: {
+			type: [String],
+			validate: {
+				validator: (arr: string[]) => arr.length <= 5,
+				message: "A post can have a maximum of 5 images.",
+			},
+		},
 	},
 	{ timestamps: true },
 );

@@ -29,7 +29,7 @@ async function main() {
 		const email = faker.internet.email().toLowerCase();
 		const name = faker.person.fullName();
 		const bio = faker.lorem.sentence();
-		const profilePic = "uploads/profile-fake-1.jpg";
+		const profilePic = "uploads/profile-picture/profile-fake-1.jpg";
 
 		const newUser = new UserModel({
 			name,
