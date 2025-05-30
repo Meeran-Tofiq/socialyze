@@ -13,8 +13,8 @@ interface ProfilePicProps {
 export default function ProfilePic({
 	src,
 	alt = "Profile picture",
-	width = 40,
-	height = 40,
+	width = 50,
+	height = 50,
 	className = "",
 }: ProfilePicProps) {
 	if (!src) return null;
