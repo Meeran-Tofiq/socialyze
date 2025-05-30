@@ -7,6 +7,7 @@ import getPublicProfileFromUser from "@api/common/publicUser";
 import UserModel from "../me/model";
 import PostModel, { PostDoc } from "./model";
 import { getPresignedDownloadUrl } from "../media/service";
+import { ObjectId } from "mongodb";
 
 async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 	const enriched = [];
@@ -40,9 +41,9 @@ async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 
 		// Convert media keys to presigned URLs
 		let mediaUrls: string[] = [];
-		if (post.mediaUrl && Array.isArray(post.mediaUrl)) {
+		if (post.media && Array.isArray(post.media)) {
 			mediaUrls = await Promise.all(
-				post.mediaUrl.map(async (key) => {
+				post.media.map(async (key) => {
 					if (key.startsWith("http")) return key; // already a URL, just return
 					return getPresignedDownloadUrl(key);
 				}),
@@ -53,7 +54,7 @@ async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 			...post.toObject(),
 			author: authorPublic,
 			comments: enrichedComments,
-			mediaUrl: mediaUrls, // overwrite with presigned URLs
+			media: mediaUrls, // overwrite with presigned URLs
 		});
 	}
 
@@ -65,18 +66,18 @@ export async function createPost(req: Request, res: Response) {
 	logger.info(`[createPost] - User ${authReq.user.id} is creating a post`);
 
 	try {
-		const { content, mediaUrl } = req.body; // expect mediaUrl array here
+		const { content, media } = req.body; // expect media array here
 		const authorId = authReq.user.id;
 
-		// Validate mediaUrl is an array if provided
-		const mediaKeys = Array.isArray(mediaUrl) ? mediaUrl : [];
+		// Validate media is an array if provided
+		const mediaKeys = Array.isArray(media) ? media : [];
 
 		const newPost = await PostModel.create({
 			authorId,
 			content,
 			likes: [],
 			comments: [],
-			mediaUrl: mediaKeys, // save the keys here
+			media: mediaKeys, // save the keys here
 		});
 
 		logger.info(`[createPost] - Post created with id: ${newPost._id}`);
@@ -229,12 +230,14 @@ export async function getUserPosts(req: Request, res: Response) {
 	logger.info(`[getUserPosts] - Fetching posts for user ${userId}`);
 
 	try {
-		const posts = await PostModel.find({ authorId: userId }).sort({ createdAt: -1 });
+		const posts = await PostModel.find({ authorId: new ObjectId(userId) }).sort({
+			createdAt: -1,
+		});
 		const enrichedPosts = await enrichPostsWithAuthorInfo(posts);
 
 		logger.info(`[getUserPosts] - Retrieved ${posts.length} posts for user ${userId}`);
 
-		return res.json(enrichedPosts);
+		return res.json({ posts: enrichedPosts });
 	} catch (error) {
 		logger.error(`[getUserPosts] - Failed to get posts for user ${userId}:`, error);
 		return res.status(500).json({ message: "Failed to get user posts" });

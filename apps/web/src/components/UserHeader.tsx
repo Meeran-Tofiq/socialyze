@@ -2,6 +2,8 @@ import ProfilePic from "./ProfilePic";
 import { UserPublic } from "@socialyze/shared";
 
 export default function UserHeader({ profile }: { profile: UserPublic }) {
+	if (!profile) return;
+
 	return (
 		<div className="mb-4 flex items-center gap-4">
 			<ProfilePic src={profile.profilePic} alt={profile.username} width={64} height={64} />

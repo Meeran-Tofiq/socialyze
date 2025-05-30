@@ -65,6 +65,7 @@ export default function PostCard({ post }: PostCardProps) {
 			);
 			const data = await res.json();
 			setComments(data);
+			console.log(comments);
 		} catch {
 			alert("Failed to load comments.");
 		}
@@ -91,7 +92,7 @@ export default function PostCard({ post }: PostCardProps) {
 
 			<p className="whitespace-pre-wrap text-gray-200">{post.content}</p>
 
-			<PostImages images={post.mediaUrl ?? []} />
+			<PostImages images={post.media ?? []} />
 
 			<div className="mt-3 flex items-center space-x-4 text-sm text-gray-400">
 				<button
@@ -114,7 +115,7 @@ export default function PostCard({ post }: PostCardProps) {
 					comments.map((comment) => (
 						<div key={comment._id} className="text-sm text-gray-300">
 							<span className="font-semibold text-gray-200">
-								{comment.author.username}
+								{comment.author ? comment.author.username : "Unknown user"}
 							</span>
 							: {comment.content}
 						</div>
