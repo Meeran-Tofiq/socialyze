@@ -75,7 +75,14 @@ export default function FeedPage() {
 			) : error ? (
 				<div className="mt-10 text-center text-red-500">Error: {error}</div>
 			) : posts.length === 0 ? (
-				<div className="mt-10 text-center text-gray-400">No posts available.</div>
+				<>
+					<div className="mt-10 text-center text-gray-400">No posts available.</div>
+					{showFollowingOnly && (
+						<div className="mt-10 text-center text-gray-400">
+							You either follow no one, or they are boring.
+						</div>
+					)}
+				</>
 			) : (
 				<>
 					<NewPostForm onPostCreated={fetchFeed} />
