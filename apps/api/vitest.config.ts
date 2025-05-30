@@ -12,6 +12,9 @@ export default defineConfig({
 		},
 	},
 	test: {
+		deps: {
+			inline: ["@socialyze/shared"], // this forces Vitest to transform your shared package source code
+		},
 		globals: true,
 		environment: "node",
 		include: ["tests/**/*.test.ts"], // only run tests in the tests folder
