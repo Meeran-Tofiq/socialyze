@@ -41,7 +41,7 @@ export default function NewPostForm({ onPostCreated }: NewPostFormProps) {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify({ content, mediaUrl: keys }),
+				body: JSON.stringify({ content, media: keys }),
 			});
 
 			if (!res.ok) throw new Error("Failed to create post");

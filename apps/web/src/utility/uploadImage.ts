@@ -1,4 +1,8 @@
-export async function uploadImages(token: string, selectedFiles: File[]): Promise<string[]> {
+export async function uploadImages(
+	token: string,
+	selectedFiles: File[],
+	prefix = "uploads/post",
+): Promise<string[]> {
 	const keys: string[] = [];
 
 	for (const file of selectedFiles) {
@@ -9,7 +13,7 @@ export async function uploadImages(token: string, selectedFiles: File[]): Promis
 				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify({
-				prefix: "uploads/post",
+				prefix,
 				fileName: file.name,
 				fileType: file.type,
 			}),
