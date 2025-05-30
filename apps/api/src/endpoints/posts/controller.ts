@@ -40,9 +40,9 @@ async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 		}));
 
 		// Convert media keys to presigned URLs
-		let mediaUrls: string[] = [];
+		let media: string[] = [];
 		if (post.media && Array.isArray(post.media)) {
-			mediaUrls = await Promise.all(
+			media = await Promise.all(
 				post.media.map(async (key) => {
 					if (key.startsWith("http")) return key; // already a URL, just return
 					return getPresignedDownloadUrl(key);
@@ -54,7 +54,7 @@ async function enrichPostsWithAuthorInfo(posts: PostDoc[]) {
 			...post.toObject(),
 			author: authorPublic,
 			comments: enrichedComments,
-			media: mediaUrls, // overwrite with presigned URLs
+			media: media, // overwrite with presigned URLs
 		});
 	}
 

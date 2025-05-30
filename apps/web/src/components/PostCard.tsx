@@ -97,7 +97,7 @@ export default function PostCard({ post }: PostCardProps) {
 				onDelete={handleDelete}
 				isDeleting={isDeleting}
 			/>
-			<PostContent content={post.content} media={post.media} />
+			<PostContent content={post.content as string} media={post.media} />
 			<PostActions
 				userHasLiked={userHasLiked}
 				likesCount={likes.length}

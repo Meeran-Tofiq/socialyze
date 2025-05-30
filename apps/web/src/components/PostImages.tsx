@@ -6,6 +6,7 @@ interface PostImagesProps {
 
 export default function PostImages({ images }: PostImagesProps) {
 	if (!images || images.length === 0) return null;
+	console.log(images);
 
 	return (
 		<div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
