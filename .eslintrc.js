@@ -18,6 +18,7 @@ module.exports = {
 		"tailwind.config.js",
 		"*.config.js",
 		"**/*.d.ts", // optional: ignore TypeScript declaration files
+		"**/dist/*",
 	],
 	extends: [
 		"eslint:recommended",

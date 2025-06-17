@@ -1,5 +1,5 @@
-import { NeedsUsernameResponse } from "@web/app/auth/callback/page";
 import { useState } from "react";
+import { NeedsUsernameResponse } from "@web/components/AuthCallback";
 
 export default function UsernameForm({
 	userInfo,
