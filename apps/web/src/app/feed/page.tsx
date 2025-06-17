@@ -1,7 +1,7 @@
 "use client";
 
-import NewPostForm from "@web/components/NewPostForm";
 import PostList from "@web/components/PostList";
+import NewPostForm from "@web/components/NewPostForm";
 import { useState } from "react";
 import { usePosts } from "@web/hooks/usePosts";
 
@@ -12,7 +12,7 @@ export default function FeedPage() {
 		? `${process.env.NEXT_PUBLIC_API_URL}/posts/feed/following`
 		: `${process.env.NEXT_PUBLIC_API_URL}/posts/feed`;
 
-	const { posts, loading, error, refetch } = usePosts(feedUri);
+	const { posts, loading, error, refetch, hasMore, loadMore } = usePosts(feedUri);
 
 	return (
 		<>
@@ -36,6 +36,7 @@ export default function FeedPage() {
 			</div>
 
 			<NewPostForm onPostCreated={refetch} />
+
 			<PostList
 				posts={posts}
 				loading={loading}
@@ -46,6 +47,23 @@ export default function FeedPage() {
 						: "No posts available."
 				}
 			/>
+
+			{/* Load More Button */}
+			{hasMore && (
+				<div className="my-6 flex justify-center">
+					<button
+						disabled={loading}
+						onClick={loadMore}
+						className={`rounded px-6 py-3 font-semibold ${
+							loading
+								? "cursor-not-allowed bg-gray-400"
+								: "bg-blue-600 text-white hover:bg-blue-700"
+						}`}
+					>
+						{loading ? "Loading..." : "Load More"}
+					</button>
+				</div>
+			)}
 		</>
 	);
 }

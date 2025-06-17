@@ -176,11 +176,13 @@ export async function getFeed(req: Request, res: Response) {
 		const feed = await PostModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
 		const enrichedFeed = await enrichPostsWithAuthorInfo(feed);
 
+		const hasMore = feed.length === limit;
+
 		logger.info(
-			`[getFeed] - Retrieved ${feed.length} posts for page ${page} with limit ${limit}`,
+			`[getFeed] - Retrieved ${feed.length} posts for page ${page} with limit ${limit}, hasMore: ${hasMore}`,
 		);
 
-		return res.json({ page, limit, posts: enrichedFeed });
+		return res.json({ page, limit, posts: enrichedFeed, hasMore });
 	} catch (error) {
 		logger.error(`[getFeed] - Failed to get feed:`, error);
 		return res.status(500).json({ message: "Failed to get feed" });
@@ -211,11 +213,13 @@ export async function getFeedFromFollowing(req: Request, res: Response) {
 
 		const enrichedFeed = await enrichPostsWithAuthorInfo(feed);
 
+		const hasMore = feed.length === limit;
+
 		logger.info(
-			`[getFeedFromFollowing] - Retrieved ${feed.length} posts from following for page ${page} with limit ${limit}`,
+			`[getFeedFromFollowing] - Retrieved ${feed.length} posts from following for page ${page} with limit ${limit}, hasMore: ${hasMore}`,
 		);
 
-		return res.json({ page, limit, posts: enrichedFeed });
+		return res.json({ page, limit, posts: enrichedFeed, hasMore });
 	} catch (error) {
 		logger.error(
 			`[getFeedFromFollowing] - Failed to get feed for user ${authReq.user.id}:`,
