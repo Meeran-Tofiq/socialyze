@@ -9,12 +9,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Define allowed origins
+const allowedOrigins: string[] = [
+	process.env.FRONTEND_ORIGIN,
+	"http://localhost:3000",
+	"http://13.60.56.248",
+	// Add your future domain here when you get it
+	// 'https://yourapp.com',
+	// 'https://www.yourapp.com'
+].filter((origin): origin is string => Boolean(origin));
+
 app.use(
 	cors({
-		origin: process.env.FRONTEND_ORIGIN,
+		origin: allowedOrigins,
 		credentials: true,
 	}),
 );
+
 app.use(express.json());
 
 app.get("/", (_, res) => {
@@ -28,6 +39,7 @@ async function startServer() {
 	try {
 		await connectDB();
 		console.log("✅ Connected to MongoDB");
+		console.log("🌐 Allowed CORS origins:", allowedOrigins);
 
 		app.listen(PORT, () => {
 			console.log(`🚀 Server running on http://localhost:${PORT}`);
