@@ -9,12 +9,13 @@ type AuthContextType = {
 	login: () => void;
 	logout: () => void;
 	refetchUser: () => void;
+	setToken: (token: string) => void; // Add this method
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-	const [token, setToken] = useState<string | null>(null);
+	const [token, setTokenState] = useState<string | null>(null);
 	const [user, setUser] = useState<Partial<User> | null>(null);
 
 	const fetchAndSetUser = useCallback(async () => {
@@ -32,10 +33,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	}, [token]);
 
+	// Method to set token and update localStorage
+	const setToken = useCallback((newToken: string) => {
+		localStorage.setItem("jwt", newToken);
+		setTokenState(newToken);
+	}, []);
+
 	useEffect(() => {
 		const stored = getToken();
 		if (!stored) return;
-		setToken(stored);
+		setTokenState(stored);
 	}, []);
 
 	useEffect(() => {
@@ -43,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 		const onStorageChange = () => {
 			const updated = getToken();
-			setToken(updated);
+			setTokenState(updated);
 			fetchAndSetUser();
 		};
 		window.addEventListener("storage", onStorageChange);
@@ -62,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	};
 
 	const logout = () => {
-		setToken(null);
+		setTokenState(null);
 		setUser(null);
 		clearStoredToken();
 		window.location.href =
@@ -74,7 +81,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	};
 
 	return (
-		<AuthContext.Provider value={{ token, user, login, logout, refetchUser: fetchAndSetUser }}>
+		<AuthContext.Provider
+			value={{ token, user, login, logout, refetchUser: fetchAndSetUser, setToken }}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

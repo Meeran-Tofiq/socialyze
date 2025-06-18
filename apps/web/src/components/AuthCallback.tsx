@@ -1,7 +1,7 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@web/providers/AuthProvider";
 import UsernameForm from "@web/components/UsernameForm";
 
 export type NeedsUsernameResponse = {
@@ -15,8 +15,8 @@ export type NeedsUsernameResponse = {
 export default function AuthCallback() {
 	const router = useRouter();
 	const params = useSearchParams();
+	const { setToken } = useAuth(); // Get setToken from AuthProvider
 	const code = params.get("code");
-
 	const [needsUsernameData, setNeedsUsernameData] = useState<NeedsUsernameResponse | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -47,9 +47,8 @@ export default function AuthCallback() {
 				if (!res.ok) throw new Error("Token exchange failed");
 
 				const data = await res.json();
-				// Use AuthProvider to set token & user
-				localStorage.setItem("jwt", data.token);
-				// Optionally fetch user data here or you can just reload
+				// Use AuthProvider's setToken method - this will update state immediately
+				setToken(data.token);
 				router.replace("/");
 			} catch (error) {
 				console.error("Failed to exchange code:", error);
@@ -58,7 +57,7 @@ export default function AuthCallback() {
 		}
 
 		exchangeCode();
-	}, [code, router]);
+	}, [code, router, setToken]);
 
 	if (loading && !needsUsernameData) return <p>Logging you in...</p>;
 
@@ -67,8 +66,8 @@ export default function AuthCallback() {
 			<UsernameForm
 				userInfo={needsUsernameData}
 				onSuccess={(token) => {
-					localStorage.setItem("jwt", token);
-					// You could also update AuthProvider state here if you want a method to set token directly
+					// Use AuthProvider's setToken method here too
+					setToken(token);
 					router.replace("/");
 				}}
 			/>
