@@ -44,6 +44,8 @@ jobs:
 
                     pnpm install --frozen-lockfile
 
+                    pnpm --filter shared build || (echo "Shared build failed" && exit 1)
+
                     # Build apps
                     pnpm --filter web build || (echo "Web build failed" && exit 1)
                     pnpm --filter api build || (echo "API build failed" && exit 1)
