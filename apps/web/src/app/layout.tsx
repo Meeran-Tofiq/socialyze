@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@web/providers/AuthProvider";
 import Header from "@web/components/Header";
+import { SidebarProvider } from "@web/providers/SidebarProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,12 +16,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	return (
 		<html lang="en">
 			<body className={`h-screen ${inter.className}`}>
-				<AuthProvider>
-					<div className="flex h-screen flex-col">
-						<Header />
-						<div className="flex-1 overflow-hidden">{children}</div>
-					</div>
-				</AuthProvider>
+				<SidebarProvider>
+					<AuthProvider>
+						<div className="flex h-screen flex-col">
+							<Header />
+							<div className="flex-1 overflow-hidden">{children}</div>
+						</div>
+					</AuthProvider>
+				</SidebarProvider>
 			</body>
 		</html>
 	);

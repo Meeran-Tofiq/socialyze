@@ -1,0 +1,56 @@
+name: Deploy to EC2
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Setup SSH key
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+                  chmod 600 ~/.ssh/id_rsa
+
+            - name: Add EC2 to known hosts
+              run: ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+            - name: Deploy app
+              run: |
+                  ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+                    set -e
+
+                    # Path to your app on the server
+                    APP_DIR=/var/www/socialyze
+
+                    if [ ! -d "$APP_DIR" ]; then
+                      mkdir -p $APP_DIR
+                      git clone https://github.com/Meeran-Tofiq/socialyze.git $APP_DIR
+                    fi
+
+                    cd $APP_DIR
+
+                    git pull origin main
+
+                    corepack enable
+                    corepack prepare pnpm@latest --activate
+
+                    pnpm install --frozen-lockfile
+
+                    # Build apps
+                    pnpm --filter web build || (echo "Web build failed" && exit 1)
+                    pnpm --filter api build || (echo "API build failed" && exit 1)
+
+                    # Use PM2 to start or restart the apps
+                    pm2 start ecosystem.config.js --env production || pm2 restart ecosystem.config.js --env production || (echo "PM2 failed" && exit 1)
+
+                    # Save PM2 process list (for startup on reboot)
+                    pm2 save
+                  EOF
