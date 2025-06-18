@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@web/providers/AuthProvider";
 import Header from "@web/components/Header";
 import { SidebarProvider } from "@web/providers/SidebarProvider";
+import StarryBackground from "@web/components/StarryBackground";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					<AuthProvider>
 						<div className="flex h-screen flex-col">
 							<Header />
-							<div className="flex-1 overflow-hidden">{children}</div>
+							<StarryBackground />
+							<div className="z-10 flex-1 overflow-hidden">{children}</div>
 						</div>
 					</AuthProvider>
 				</SidebarProvider>
