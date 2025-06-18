@@ -28,7 +28,7 @@ export default function Header() {
 			{/* Center: Socialyze logo - centered on mobile, left-aligned on desktop */}
 			<div className="flex-1 text-center sm:text-left">
 				<h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
-					<a href={user ? "/feed" : "/"}>Socialyze</a>
+					<a href={"/"}>Socialyze</a>
 				</h1>
 			</div>
 
@@ -36,7 +36,7 @@ export default function Header() {
 			<div className="items-center space-x-6">
 				{!user && <LoginButton />}
 				{user && (
-					<a href="profile">
+					<a href="/profile">
 						<div className="flex items-center gap-5 p-1">
 							<h3 className="hidden sm:block">{user?.username}</h3>
 							<ProfilePic
