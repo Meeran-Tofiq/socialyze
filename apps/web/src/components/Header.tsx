@@ -30,10 +30,14 @@ export default function Header() {
 				<h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
 					<a href={"/"}>Socialyze</a>
 				</h1>
-				{" | "}
-				<h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-					<a href="/feed">Feed</a>
-				</h3>
+				{user && (
+					<>
+						{" | "}
+						<h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+							<a href="/feed">Feed</a>
+						</h3>
+					</>
+				)}
 			</div>
 
 			{/* Right: Login/Profile */}
