@@ -26,7 +26,7 @@ export default function Header() {
 			</div>
 
 			{/* Center: Socialyze logo - centered on mobile, left-aligned on desktop */}
-			<div className="flex flex-1 items-center gap-5 text-center sm:text-left">
+			<div className="flex flex-1 items-center justify-center gap-5 text-center sm:text-left">
 				<h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
 					<a href={"/"}>Socialyze</a>
 				</h1>
